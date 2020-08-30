@@ -1,4 +1,4 @@
-pub mod chunk;
 mod file;
+pub mod piece;
 
 pub use file::*;

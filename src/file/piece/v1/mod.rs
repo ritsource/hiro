@@ -3,27 +3,27 @@ use std::fmt;
 use std::mem;
 use uuid;
 
-use crate::file::chunk::VersionID;
 use crate::file::file::FileID;
+use crate::file::piece::VersionID;
 
 pub const VERSION: VersionID = [0u8; 3];
 pub const HEADER_LEN: usize =
-  mem::size_of::<VersionID>() + mem::size_of::<[u8; 4]>() + mem::size_of::<[u8; 4]>() + mem::size_of::<ChunkID>();
+  mem::size_of::<VersionID>() + mem::size_of::<[u8; 4]>() + mem::size_of::<[u8; 4]>() + mem::size_of::<PieceID>();
 
 pub type Header = [u8; HEADER_LEN];
 
-pub type ChunkID = uuid::Bytes;
+pub type PieceID = uuid::Bytes;
 
 #[derive(Default, Debug)]
-pub struct Chunk {
-  pub id: ChunkID,
+pub struct Piece {
+  pub id: PieceID,
   pub file_id: FileID,
   pub index: usize,
   pub length: usize,
 }
 
 #[allow(dead_code)]
-impl Chunk {
+impl Piece {
   pub fn new(file_id: FileID, length: usize, index: usize) -> Self {
     Self {
       file_id,
@@ -34,7 +34,7 @@ impl Chunk {
     .with_new_id()
   }
 
-  pub fn new_with_id(id: ChunkID, file_id: FileID, length: usize, index: usize) -> Self {
+  pub fn new_with_id(id: PieceID, file_id: FileID, length: usize, index: usize) -> Self {
     Self {
       file_id,
       length,
@@ -49,7 +49,7 @@ impl Chunk {
     self
   }
 
-  pub fn with_id(mut self, id: ChunkID) -> Self {
+  pub fn with_id(mut self, id: PieceID) -> Self {
     self.id = id;
     self
   }
@@ -69,7 +69,7 @@ impl Chunk {
   //   self
   // }
 
-  pub fn id(self) -> ChunkID {
+  pub fn id(self) -> PieceID {
     self.id
   }
 
@@ -85,7 +85,7 @@ impl Chunk {
     self.index
   }
 
-  pub fn encode_as_header(self) -> Header {
+  fn encode_as_header(self) -> Header {
     unsafe {
       use alloc::{alloc, dealloc, Layout};
       use mem::size_of;
@@ -103,8 +103,8 @@ impl Chunk {
       *(ptr.offset(x) as *mut [u8; 4]) = (self.length as u32).to_be_bytes();
       x += size_of::<[u8; 4]>() as isize;
 
-      *(ptr.offset(x) as *mut ChunkID) = self.id;
-      x += size_of::<ChunkID>() as isize;
+      *(ptr.offset(x) as *mut PieceID) = self.id;
+      x += size_of::<PieceID>() as isize;
 
       *(ptr.offset(x) as *mut FileID) = self.file_id;
       // x += size_of::<FileID>() as isize;
@@ -117,7 +117,7 @@ impl Chunk {
     }
   }
 
-  pub fn decode_from_header(buf: &Header) -> Self {
+  fn decode_from_header(buf: &Header) -> Self {
     use mem::size_of;
 
     let mut x: usize = 0;
@@ -140,9 +140,9 @@ impl Chunk {
     // length = u32::from_be_bytes(&buf[x..y]);
 
     x = y;
-    y += size_of::<ChunkID>();
+    y += size_of::<PieceID>();
 
-    let mut id: ChunkID = Default::default();
+    let mut id: PieceID = Default::default();
     id.copy_from_slice(&buf[x..y]);
 
     x = y;

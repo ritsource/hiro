@@ -3,7 +3,7 @@ use std::{fs, io};
 use uuid;
 
 #[allow(unused_imports)]
-use crate::file::chunk::{v1::Chunk, DEFAULT_CHUNK_SIZE};
+use crate::file::piece::{v1::Piece, DEFAULT_PIECE_SIZE};
 
 pub type FileID = uuid::Bytes;
 
@@ -69,17 +69,17 @@ impl File {
     self.length
   }
 
-  pub fn chunks(&self) -> Vec<Chunk> {
+  pub fn pieces(&self) -> Vec<Piece> {
     (0..self.length)
-      .step_by(DEFAULT_CHUNK_SIZE)
+      .step_by(DEFAULT_PIECE_SIZE)
       .map(|i| {
-        let len = if (self.length - (i * DEFAULT_CHUNK_SIZE)) > DEFAULT_CHUNK_SIZE {
-          self.length - i * DEFAULT_CHUNK_SIZE
+        let len = if (self.length - (i * DEFAULT_PIECE_SIZE)) > DEFAULT_PIECE_SIZE {
+          self.length - i * DEFAULT_PIECE_SIZE
         } else {
-          DEFAULT_CHUNK_SIZE
+          DEFAULT_PIECE_SIZE
         };
 
-        Chunk::new(self.id, len, i)
+        Piece::new(self.id, len, i)
       })
       .collect()
   }
