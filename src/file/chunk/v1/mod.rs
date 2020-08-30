@@ -1,4 +1,5 @@
 use std::alloc;
+use std::fmt;
 use std::mem;
 use uuid;
 
@@ -116,7 +117,7 @@ impl Chunk {
     }
   }
 
-  pub fn decode_from_header(self, buf: &Header) -> Self {
+  pub fn decode_from_header(buf: &Header) -> Self {
     use mem::size_of;
 
     let mut x: usize = 0;
@@ -156,5 +157,49 @@ impl Chunk {
       index: u32::from_be_bytes(index_bs) as usize,
       length: u32::from_be_bytes(length_bs) as usize,
     }
+  }
+
+  pub fn serialize(self) -> Vec<u8> {
+    self.encode_as_header().to_vec()
+  }
+
+  pub fn deserialize(buf: Vec<u8>) -> Result<Self, DeserializationInputLengthError> {
+    use std::convert::TryInto;
+
+    Ok(Self::decode_from_header(
+      &({
+        let boxed_arr: Box<Header> = match buf.into_boxed_slice().try_into() {
+          Ok(ba) => ba,
+          Err(_) => {
+            return Err(DeserializationInputLengthError::new());
+          }
+        };
+        *boxed_arr
+      }),
+    ))
+  }
+}
+
+#[derive(Debug, Clone)]
+pub struct DeserializationInputLengthError(());
+
+impl DeserializationInputLengthError {
+  fn new() -> Self {
+    Self(())
+  }
+  fn description(&self) -> &str {
+    "deserialization input is not long enough"
+  }
+}
+
+impl fmt::Display for DeserializationInputLengthError {
+  fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fmt.write_str(self.description())
+  }
+}
+
+impl std::error::Error for DeserializationInputLengthError {
+  fn description(&self) -> &str {
+    self.description()
   }
 }

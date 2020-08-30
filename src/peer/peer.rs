@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::io;
-use std::net::{TcpStream, ToSocketAddrs};
+use std::net::{SocketAddr, TcpStream};
 use uuid;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -13,19 +13,17 @@ pub enum PeerType {
 pub type PeerID = uuid::Bytes;
 
 #[allow(dead_code)]
-pub struct Peer<A: ToSocketAddrs> {
+#[derive(Debug)]
+pub struct Peer {
   pub id: PeerID,
   pub peer_type: PeerType,
-  pub addr: A,
+  pub addr: SocketAddr,
   pub stream: Option<TcpStream>,
 }
 
 #[allow(dead_code)]
-impl<A> Peer<A>
-where
-  A: ToSocketAddrs,
-{
-  pub fn new(addr: A, peer_type: PeerType) -> Self {
+impl Peer {
+  pub fn new(addr: SocketAddr, peer_type: PeerType) -> Self {
     Self {
       id: *uuid::Uuid::new_v4().as_bytes(),
       peer_type: peer_type,
@@ -34,16 +32,40 @@ where
     }
   }
 
-  pub fn new_master(addr: A) -> Self {
-    Self::new(addr, PeerType::Master)
+  pub fn new_master(addr: &str) -> Result<Self, std::net::AddrParseError> {
+    Ok(Self::new(
+      match addr.parse() {
+        Ok(a) => a,
+        Err(e) => {
+          return Err(e);
+        }
+      },
+      PeerType::Master,
+    ))
   }
 
-  pub fn new_worker(addr: A) -> Self {
-    Self::new(addr, PeerType::Worker)
+  pub fn new_worker(addr: &str) -> Result<Self, std::net::AddrParseError> {
+    Ok(Self::new(
+      match addr.parse() {
+        Ok(a) => a,
+        Err(e) => {
+          return Err(e);
+        }
+      },
+      PeerType::Worker,
+    ))
   }
 
-  pub fn new_client(addr: A) -> Self {
-    Self::new(addr, PeerType::Client)
+  pub fn new_client(addr: &str) -> Result<Self, std::net::AddrParseError> {
+    Ok(Self::new(
+      match addr.parse() {
+        Ok(a) => a,
+        Err(e) => {
+          return Err(e);
+        }
+      },
+      PeerType::Client,
+    ))
   }
 
   pub fn with_id(mut self, id: PeerID) -> Self {
@@ -74,10 +96,7 @@ where
   }
 }
 
-impl<A> io::Read for Peer<A>
-where
-  A: ToSocketAddrs,
-{
+impl io::Read for Peer {
   fn read(&mut self, buf: &mut [u8]) -> Result<usize, io::Error> {
     match &mut self.stream {
       Some(s) => s.read(buf),
@@ -86,10 +105,7 @@ where
   }
 }
 
-impl<A> io::Write for Peer<A>
-where
-  A: ToSocketAddrs,
-{
+impl io::Write for Peer {
   fn write(&mut self, buf: &[u8]) -> Result<usize, io::Error> {
     match &mut self.stream {
       Some(s) => s.write(buf),
