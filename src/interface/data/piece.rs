@@ -1,4 +1,4 @@
-use crate::file::piece::v1 as piece;
+use crate::file::{self, piece::v1 as piece};
 
 // NOTE: For copy of data - for every chunk there will
 // be a primary worker and multiple secondary worker.
@@ -10,8 +10,11 @@ use crate::file::piece::v1 as piece;
 
 #[allow(dead_code)]
 pub struct Piece {
-  header: piece::Header,
-  data: Vec<u8>,
+  pub id: piece::PieceID,
+  pub file_id: file::FileID,
+  pub index: usize,
+  pub length: usize,
+  pub data: Option<Vec<u8>>,
 }
 
 #[allow(dead_code)]
