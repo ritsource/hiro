@@ -35,4 +35,16 @@ For reading files
 
 # messages
 
+> [ Client ] sending a new file metadata to master
+
+From `Client` to `Master`   
+Request -> `File`   
+Response -> `HashMap<Chunk, Vec<<Peer>>`   
+
+> [ Master ] calculating the pirces to construct from for the file
+> [ Master ] assigning each pirces to one/multiple workers, and saving it to a table
+> [ Master ] sending information about which piece is going to be stored in which worker
+> [ Client ] writing pirces of the original file to workers
+> [ Worker ] writing those pieces to SSD/HHDs and sending confirmation messages to master and client
+
 ... many :p
