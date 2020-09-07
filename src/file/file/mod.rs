@@ -18,29 +18,19 @@ pub struct File {
 
 #[allow(dead_code)]
 impl File {
-  pub fn new(length: usize, title: Option<String>, created_at: Option<u64>, uploaded_at: Option<u64>) -> Self {
+  pub fn new(length: usize, title: Option<String>) -> Self {
     Self {
       length,
       title,
-      created_at,
-      uploaded_at,
       ..Default::default()
     }
     .with_new_id()
   }
 
-  pub fn new_with_id(
-    id: FileID,
-    length: usize,
-    title: Option<String>,
-    created_at: Option<u64>,
-    uploaded_at: Option<u64>,
-  ) -> Self {
+  pub fn new_with_id(id: FileID, length: usize, title: Option<String>) -> Self {
     Self {
       length,
       title,
-      created_at,
-      uploaded_at,
       ..Default::default()
     }
     .with_id(id)

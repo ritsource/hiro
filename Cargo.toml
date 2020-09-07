@@ -10,3 +10,4 @@ edition = "2018"
 rusqlite = "0.24.0"
 uuid = { version = "0.8.1", features = ["v4"] }
 serde = { version = "1.0.115", features = ["derive"] }
+lazy_static = "1.4.0"

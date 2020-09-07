@@ -3,7 +3,7 @@ use std::io;
 use std::net::{SocketAddr, TcpStream};
 use uuid;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub enum PeerType {
   Master,
   Worker,

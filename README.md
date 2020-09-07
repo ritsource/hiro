@@ -48,3 +48,10 @@ Response -> `HashMap<Chunk, Vec<<Peer>>`
 > [ Worker ] writing those pieces to SSD/HHDs and sending confirmation messages to master and client
 
 ... many :p
+
+
+# idea
+
+5. [ Client ] writing pirces of the original file to workers - the client sends data about other workers that the piece
+   needs to be copied to.
+
