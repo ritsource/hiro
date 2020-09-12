@@ -1,10 +1,5 @@
 use super::data;
-#[allow(unused_imports)]
-use crate::file::piece::v1 as piece;
-#[allow(unused_imports)]
 use serde::{Deserialize, Serialize};
-#[allow(unused_imports)]
-use std::collections::HashMap;
 
 pub trait MessagePayload<'de>: Serialize + Deserialize<'de> {}
 

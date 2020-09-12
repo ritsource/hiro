@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::io;
 use std::net::{SocketAddr, TcpStream};
-use uuid;
+
+use crate::id::v1 as id;
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub enum PeerType {
@@ -10,7 +11,7 @@ pub enum PeerType {
   Client,
 }
 
-pub type PeerID = uuid::Bytes;
+pub type PeerID = id::ID;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -25,7 +26,7 @@ pub struct Peer {
 impl Peer {
   pub fn new(addr: SocketAddr, peer_type: PeerType) -> Self {
     Self {
-      id: *uuid::Uuid::new_v4().as_bytes(),
+      id: PeerID::new(),
       peer_type: peer_type,
       addr: addr,
       stream: None,

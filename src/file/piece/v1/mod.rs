@@ -5,6 +5,7 @@ use uuid;
 
 use crate::file::file::FileID;
 use crate::file::piece::VersionID;
+use crate::id::v1 as id;
 
 pub const VERSION: VersionID = [0u8; 3];
 pub const HEADER_LEN: usize =
@@ -12,7 +13,7 @@ pub const HEADER_LEN: usize =
 
 pub type Header = [u8; HEADER_LEN];
 
-pub type PieceID = uuid::Bytes;
+pub type PieceID = id::ID;
 
 #[derive(Default, Debug)]
 pub struct Piece {
@@ -45,7 +46,7 @@ impl Piece {
   }
 
   pub fn with_new_id(mut self) -> Self {
-    self.id = *uuid::Uuid::new_v4().as_bytes();
+    self.id = PieceID::new();
     self
   }
 
@@ -142,14 +143,16 @@ impl Piece {
     x = y;
     y += size_of::<PieceID>();
 
-    let mut id: PieceID = Default::default();
-    id.copy_from_slice(&buf[x..y]);
+    let mut id_buf: uuid::Bytes = Default::default();
+    id_buf.copy_from_slice(&buf[x..y]);
+    let id = PieceID::from_bytes(id_buf);
 
     x = y;
     y += size_of::<FileID>();
 
-    let mut file_id: FileID = Default::default();
-    file_id.copy_from_slice(&buf[x..y]);
+    let mut file_id_buf: uuid::Bytes = Default::default();
+    file_id_buf.copy_from_slice(&buf[x..y]);
+    let file_id = FileID::from_bytes(file_id_buf);
 
     Self {
       id,

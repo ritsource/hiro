@@ -1,11 +1,8 @@
 #[allow(unused_imports)]
-use std::{fs, io};
-use uuid;
-
-#[allow(unused_imports)]
 use crate::file::piece::{v1::Piece, DEFAULT_PIECE_SIZE};
+use crate::id::v1 as id;
 
-pub type FileID = uuid::Bytes;
+pub type FileID = id::ID;
 
 #[derive(Default, Debug)]
 pub struct File {
@@ -37,7 +34,7 @@ impl File {
   }
 
   fn with_new_id(mut self) -> Self {
-    self.id = *uuid::Uuid::new_v4().as_bytes();
+    self.id = FileID::new();
     self
   }
 
