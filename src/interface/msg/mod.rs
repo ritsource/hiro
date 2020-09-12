@@ -36,4 +36,10 @@ impl MessagePayload<'_> for GetPiecesFromFileResponse {}
 pub struct Message {
   pub sender: data::Peer,
   pub receiver: data::Peer,
+  pub payload: Payload,
+}
+
+pub enum Payload {
+  FileData(GetPiecesFromFileRequest),
+  PiecesWithPeers(GetPiecesFromFileResponse),
 }
