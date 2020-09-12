@@ -1,15 +1,8 @@
 #[allow(unused_imports)]
 use crate::file::{self, piece::v1 as piece};
-#[allow(unused_imports)]
 use crate::interface::data;
+use crate::interface::msg;
 use crate::peer;
-
-// lazy_static! {
-//   static ref Workers: Vec<data::Peer> = vec![
-//     data::Peer::from(peer::Peer::new_worker("192.168.0.248:8080").unwrap()),
-//     data::Peer::from(peer::Peer::new_worker("192.168.0.246:8080").unwrap()),
-//   ];
-// }
 
 #[allow(dead_code)]
 fn get_workers() -> Vec<peer::Peer> {
@@ -35,15 +28,17 @@ fn assign_pieces_to_peers(ps: Vec<piece::Piece>) -> Vec<(piece::Piece, Vec<peer:
 }
 
 #[allow(dead_code)]
-pub fn calculate_pieces(f: data::File) -> Vec<(data::Piece, data::Peer)> {
-  (Into::<file::File>::into(f))
-    .pieces()
-    .into_iter()
-    .zip(get_workers().into_iter())
-    .map(|(x, y)| {
-      println!("{:?}", x);
-      println!("{:?}", y);
-      (data::Piece::from(x), data::Peer::from(y))
-    })
-    .collect()
+pub fn calculate_pieces(payload: msg::GetPiecesFromFileRequest) -> msg::GetPiecesFromFileResponse {
+  msg::GetPiecesFromFileResponse::new(
+    (Into::<file::File>::into(payload.data()))
+      .pieces()
+      .into_iter()
+      .zip(get_workers().into_iter())
+      .map(|(x, y)| {
+        println!("{:?}", x);
+        println!("{:?}", y);
+        (data::Piece::from(x), data::Peer::from(y))
+      })
+      .collect(),
+  )
 }
