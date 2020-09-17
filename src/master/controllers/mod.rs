@@ -28,8 +28,8 @@ fn assign_pieces_to_peers(ps: Vec<piece::Piece>) -> Vec<(piece::Piece, Vec<peer:
 }
 
 #[allow(dead_code)]
-pub fn calculate_pieces(payload: msg::GetPiecesFromFileRequest) -> msg::GetPiecesFromFileResponse {
-  msg::GetPiecesFromFileResponse::new(
+pub fn calculate_pieces(payload: msg::PiecesAndPeersForFileRequest) -> msg::PiecesAndPeersForFileResponse {
+  msg::PiecesAndPeersForFileResponse::new(
     (Into::<file::File>::into(payload.data()))
       .pieces()
       .into_iter()

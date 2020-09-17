@@ -1,45 +1,58 @@
+use std::io;
+
 use super::data;
-use serde::{Deserialize, Serialize};
 
-pub trait MessagePayload<'de>: Serialize + Deserialize<'de> {}
+mod types;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct GetPiecesFromFileRequest(data::File);
+pub use types::{PiecesAndPeersForFileRequest, PiecesAndPeersForFileResponse};
 
-impl GetPiecesFromFileRequest {
-  pub fn new(data: data::File) -> Self {
-    Self(data)
-  }
+pub type MessageTypeID = u16;
 
-  pub fn data(self) -> data::File {
-    self.0
+pub enum MessageType {
+  PiecesAndPeersForFileRequest,
+  PiecesAndPeersForFileResponse,
+  None,
+}
+
+impl Default for MessageType {
+  fn default() -> Self {
+    MessageType::None
   }
 }
 
-impl MessagePayload<'_> for GetPiecesFromFileRequest {}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct GetPiecesFromFileResponse(Vec<(data::Piece, data::Peer)>);
-
-impl GetPiecesFromFileResponse {
-  pub fn new(data: Vec<(data::Piece, data::Peer)>) -> Self {
-    Self(data)
-  }
-
-  pub fn data(self) -> Vec<(data::Piece, data::Peer)> {
-    self.0
-  }
-}
-
-impl MessagePayload<'_> for GetPiecesFromFileResponse {}
-
+#[derive(Default)]
 pub struct Message {
-  pub sender: data::Peer,
-  pub receiver: data::Peer,
-  pub payload: Payload,
+  pub message_type: MessageType,
+  // pub sender: data::Peer,
+  // pub receiver: data::Peer,
+  pub payload: Vec<u8>,
 }
 
-pub enum Payload {
-  FileData(GetPiecesFromFileRequest),
-  PiecesWithPeers(GetPiecesFromFileResponse),
+impl Message {
+  pub fn new(message_type: MessageType) -> Self {
+    Self {
+      message_type,
+      ..Default::default()
+    }
+  }
+
+  pub fn from_message_type_id(id: MessageTypeID) -> Self {
+    Self::new(message_type_from_message_type_id(id))
+  }
+}
+
+pub fn message_type_from_message_type_id(message_type_id: MessageTypeID) -> MessageType {
+  match message_type_id {
+    1 => MessageType::PiecesAndPeersForFileRequest,
+    2 => MessageType::PiecesAndPeersForFileResponse,
+    _ => MessageType::None,
+  }
+}
+
+pub fn message_type_id_from_message_type(message_type: MessageType) -> MessageTypeID {
+  match message_type {
+    MessageType::PiecesAndPeersForFileRequest => 1,
+    MessageType::PiecesAndPeersForFileResponse => 2,
+    MessageType::None => 0,
+  }
 }

@@ -15,7 +15,8 @@ use hiro::interface::data;
 use hiro::interface::msg;
 use hiro::master;
 
-fn main() {
+#[tokio::main]
+async fn main() {
   // master::controllers::calculate_pieces(msg::GetPiecesFromFileRequest::new(data::File::from(file::File::new(
   //   file::piece::DEFAULT_PIECE_SIZE,
   //   None,
@@ -28,7 +29,7 @@ fn main() {
 
   if args.len() > 1 && args[1] == "--master" {
     println!("Starting master at {}", &master_addr);
-    master::start_server(master_addr).unwrap();
+    master::start_server(master_addr).await.unwrap();
   } else if args.len() > 1 && args[1] == "--client" {
     println!("Starting client");
 
