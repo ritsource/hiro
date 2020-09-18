@@ -1,16 +1,20 @@
 use std::io;
 use std::net;
 
+use crate::interface;
+use crate::interface::msg;
+
 use std::io::prelude::*;
 
 pub async fn start_server(addr: net::SocketAddr) -> Result<(), io::Error> {
   let listener = net::TcpListener::bind(addr)?;
 
   for stream in listener.incoming() {
+    println!("- new incoming stream");
     match stream {
       Ok(stream) => handle_stream(stream),
       Err(err) => {
-        println!("Error: {}", err);
+        println!("an error occurred, {}", err);
       }
     }
   }
@@ -18,44 +22,31 @@ pub async fn start_server(addr: net::SocketAddr) -> Result<(), io::Error> {
 }
 
 pub fn handle_stream(mut stream: net::TcpStream) {
-  let mut rcounter = 0;
-  let mut buf = [0u8; 8];
-  let mut msglen = 0u32;
-  let mut start = true;
+  use interface::constants::PROTOCOL_IDENTIFIER_V1;
 
-  while match stream.read(&mut buf) {
+  let mut buf = [0u8; PROTOCOL_IDENTIFIER_V1.len()];
+
+  match stream.read(&mut buf) {
     Ok(nr) => {
       println!("- read {} bytes", nr);
-      rcounter += nr;
 
-      if start && nr >= 4 {
-        msglen = u32::from_be_bytes((|| {
-          let mut x = [0u8; 4];
-          x.copy_from_slice(&buf[0..4]);
-          x
-        })());
+      let mut pid = [0u8; PROTOCOL_IDENTIFIER_V1.len()];
+      pid.copy_from_slice(&buf[0..PROTOCOL_IDENTIFIER_V1.len()]);
 
-        println!("Message length: {}", msglen);
-
-        true
-      } else if !start {
-        println!("Request: {}", String::from_utf8_lossy(&buf[..nr]));
-
-        if nr == 0 {
-          false
+      if pid == PROTOCOL_IDENTIFIER_V1 {
+        if let Err(err) = msg::handle_stream(stream) {
+          println!("an error occurred, {}", err);
         } else {
-          true
+          println!("successfully recieved message");
         }
       } else {
-        false
+        println!("an error occurred, invalid protocol identifier");
       }
     }
     Err(err) => {
       println!("an error occurred, {}", err);
       println!("terminating connection with {}", stream.peer_addr().unwrap());
       stream.shutdown(net::Shutdown::Both).unwrap();
-
-      false
     }
-  } {}
+  }
 }

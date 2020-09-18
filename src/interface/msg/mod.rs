@@ -1,9 +1,12 @@
-use std::io;
-
-use super::data;
-
 mod types;
 
+use std::io;
+use std::mem;
+use std::net;
+
+use std::io::prelude::*;
+
+use super::data;
 pub use types::{PiecesAndPeersForFileRequest, PiecesAndPeersForFileResponse};
 
 pub type MessageTypeID = u16;
@@ -20,25 +23,17 @@ impl Default for MessageType {
   }
 }
 
-#[derive(Default)]
-pub struct Message {
-  pub message_type: MessageType,
-  // pub sender: data::Peer,
-  // pub receiver: data::Peer,
-  pub payload: Vec<u8>,
-}
+pub fn handle_stream(mut stream: net::TcpStream) -> Result<(), io::Error> {
+  let mut buf = [0u8; mem::size_of::<MessageTypeID>()];
+  stream.read(&mut buf)?;
 
-impl Message {
-  pub fn new(message_type: MessageType) -> Self {
-    Self {
-      message_type,
-      ..Default::default()
-    }
+  match message_type_from_message_type_id(MessageTypeID::from_be_bytes(buf)) {
+    MessageType::PiecesAndPeersForFileRequest => {}
+    MessageType::PiecesAndPeersForFileResponse => {}
+    MessageType::None => {}
   }
 
-  pub fn from_message_type_id(id: MessageTypeID) -> Self {
-    Self::new(message_type_from_message_type_id(id))
-  }
+  Ok(())
 }
 
 pub fn message_type_from_message_type_id(message_type_id: MessageTypeID) -> MessageType {

@@ -10,6 +10,8 @@ use hiro::file;
 #[allow(unused_imports)]
 use hiro::file::piece::v1 as piece;
 #[allow(unused_imports)]
+use hiro::interface;
+#[allow(unused_imports)]
 use hiro::interface::data;
 #[allow(unused_imports)]
 use hiro::interface::msg;
@@ -34,7 +36,15 @@ async fn main() {
     println!("Starting client");
 
     match net::TcpStream::connect(master_addr) {
-      Ok(mut stream) => match stream.write(b"Hello world!") {
+      Ok(mut stream) => match stream.write(&(|| {
+        let mut buf = interface::constants::PROTOCOL_IDENTIFIER_V1.to_vec();
+        buf.extend(
+          msg::message_type_id_from_message_type(msg::MessageType::default())
+            .to_be_bytes()
+            .iter(),
+        );
+        buf
+      })()) {
         Ok(nw) => {
           println!("successfully written {} bytes", nw);
         }
