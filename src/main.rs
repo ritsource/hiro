@@ -36,15 +36,9 @@ async fn main() {
     println!("Starting client");
 
     match net::TcpStream::connect(master_addr) {
-      Ok(mut stream) => match stream.write(&(|| {
-        let mut buf = interface::constants::PROTOCOL_IDENTIFIER_V1.to_vec();
-        buf.extend(
-          msg::message_type_id_from_message_type(msg::MessageType::default())
-            .to_be_bytes()
-            .iter(),
-        );
-        buf
-      })()) {
+      Ok(mut stream) => match stream.write(&file_message((|| {
+        data::File::from(file::File::new(file::piece::DEFAULT_PIECE_SIZE, None))
+      })())) {
         Ok(nw) => {
           println!("successfully written {} bytes", nw);
         }
@@ -57,4 +51,27 @@ async fn main() {
       }
     }
   }
+}
+
+#[allow(dead_code)]
+fn ping_message() -> Vec<u8> {
+  let mut buf = interface::constants::PROTOCOL_IDENTIFIER_V1.to_vec();
+  buf.extend(
+    msg::message_type_id_from_message_type(msg::MessageType::default())
+      .to_be_bytes()
+      .iter(),
+  );
+  buf
+}
+
+#[allow(dead_code)]
+fn file_message(file: interface::data::File) -> Vec<u8> {
+  let mut buf = interface::constants::PROTOCOL_IDENTIFIER_V1.to_vec();
+  buf.extend(
+    msg::message_type_id_from_message_type(msg::MessageType::PiecesAndPeersForFileRequest)
+      .to_be_bytes()
+      .iter(),
+  );
+  buf.extend(msg::types::PiecesAndPeersForFileRequest::new(file).as_vec().unwrap());
+  buf
 }

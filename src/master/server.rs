@@ -34,11 +34,7 @@ pub fn handle_stream(mut stream: net::TcpStream) {
       pid.copy_from_slice(&buf[0..PROTOCOL_IDENTIFIER_V1.len()]);
 
       if pid == PROTOCOL_IDENTIFIER_V1 {
-        if let Err(err) = msg::handle_stream(stream) {
-          println!("an error occurred, {}", err);
-        } else {
-          println!("successfully recieved message");
-        }
+        msg::handle_stream(stream);
       } else {
         println!("an error occurred, invalid protocol identifier");
       }
