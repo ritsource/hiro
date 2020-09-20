@@ -41,6 +41,9 @@ async fn main() {
       })())) {
         Ok(nw) => {
           println!("successfully written {} bytes", nw);
+          println!("... waiting for response ...");
+
+          msg::handle_stream(stream);
         }
         Err(err) => {
           println!("Error: couldn't write to connection: {}", err);
@@ -72,6 +75,13 @@ fn file_message(file: interface::data::File) -> Vec<u8> {
       .to_be_bytes()
       .iter(),
   );
-  buf.extend(msg::types::PiecesAndPeersForFileRequest::new(file).as_vec().unwrap());
+
+  let payload = msg::types::PiecesAndPeersForFileRequest::new(file).as_vec().unwrap();
+
+  buf.extend(((payload.len()) as msg::MessagePayloadLength).to_be_bytes().iter());
+  buf.extend(payload);
+
+  // println!("{:?}", String::from_utf8_lossy(&buf[..]));
+
   buf
 }

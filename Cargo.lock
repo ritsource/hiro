@@ -88,6 +88,7 @@ dependencies = [
 name = "hiro"
 version = "0.1.0"
 dependencies = [
+ "bytes",
  "lazy_static",
  "rusqlite",
  "serde",
