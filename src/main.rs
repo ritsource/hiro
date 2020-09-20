@@ -36,14 +36,24 @@ async fn main() {
     println!("Starting client");
 
     match net::TcpStream::connect(master_addr) {
-      Ok(mut stream) => match stream.write(&file_message((|| {
-        data::File::from(file::File::new(file::piece::DEFAULT_PIECE_SIZE, None))
-      })())) {
+      Ok(mut stream) => match stream.write(&msg::build_message_buffer(
+        msg::MessageType::PiecesAndPeersForFileRequest,
+        msg::types::PiecesAndPeersForFileRequest::new(data::File::from(file::File::new(
+          file::piece::DEFAULT_PIECE_SIZE,
+          None,
+        )))
+        .as_vec()
+        .unwrap(),
+      )) {
         Ok(nw) => {
           println!("successfully written {} bytes", nw);
           println!("... waiting for response ...");
 
-          msg::handle_stream(stream);
+          if let Err((err, stream)) = interface::handle_stream(stream) {
+            println!("an error occurred, {}", err);
+            println!("terminating connection with {}", stream.peer_addr().unwrap());
+            stream.shutdown(net::Shutdown::Both).unwrap();
+          }
         }
         Err(err) => {
           println!("Error: couldn't write to connection: {}", err);
@@ -54,34 +64,4 @@ async fn main() {
       }
     }
   }
-}
-
-#[allow(dead_code)]
-fn ping_message() -> Vec<u8> {
-  let mut buf = interface::constants::PROTOCOL_IDENTIFIER_V1.to_vec();
-  buf.extend(
-    msg::message_type_id_from_message_type(msg::MessageType::default())
-      .to_be_bytes()
-      .iter(),
-  );
-  buf
-}
-
-#[allow(dead_code)]
-fn file_message(file: interface::data::File) -> Vec<u8> {
-  let mut buf = interface::constants::PROTOCOL_IDENTIFIER_V1.to_vec();
-  buf.extend(
-    msg::message_type_id_from_message_type(msg::MessageType::PiecesAndPeersForFileRequest)
-      .to_be_bytes()
-      .iter(),
-  );
-
-  let payload = msg::types::PiecesAndPeersForFileRequest::new(file).as_vec().unwrap();
-
-  buf.extend(((payload.len()) as msg::MessagePayloadLength).to_be_bytes().iter());
-  buf.extend(payload);
-
-  // println!("{:?}", String::from_utf8_lossy(&buf[..]));
-
-  buf
 }

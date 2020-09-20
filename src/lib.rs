@@ -3,6 +3,7 @@
 extern crate lazy_static;
 
 pub mod client;
+pub mod constants;
 pub mod db;
 pub mod file;
 pub mod id;
