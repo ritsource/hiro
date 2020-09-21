@@ -1,6 +1,5 @@
 pub mod data;
-pub mod msg;
-pub mod payload;
+pub mod message;
 
 use std::io;
 use std::mem;
@@ -10,6 +9,7 @@ use std::io::prelude::{Read, Write};
 
 use crate::constants;
 use crate::master;
+use message::payload::Payload;
 
 pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::Error, net::TcpStream)> {
   use constants::PROTOCOL_IDENTIFIER_V1;
@@ -23,7 +23,7 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
 
   if pid != PROTOCOL_IDENTIFIER_V1 {
     println!("invalid message recieved, protocol identifier not valid");
-    // NOTE: create a error-message (MessageType), and
+    // NOTE: create a error-message (Message), and
     // write the error-message as response
     if let Err(err) = stream.write(b"invalid protocol id") {
       return Err((err, stream));
@@ -31,30 +31,27 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
     return Ok(stream);
   }
 
-  let mut buf = [0u8; mem::size_of::<msg::MessageTypeID>()];
+  let mut buf = [0u8; mem::size_of::<message::MessageID>()];
   if let Err(err) = stream.read(&mut buf) {
     return Err((err, stream));
   }
-  let msg_type_id = msg::MessageTypeID::from_be_bytes(buf);
+  let message_type_id = message::MessageID::from_be_bytes(buf);
 
   println!("successfully recieved message");
 
-  let mut buf = [0u8; mem::size_of::<msg::MessagePayloadLength>()];
+  let mut buf = [0u8; mem::size_of::<message::MessagePayloadLength>()];
   if let Err(err) = stream.read(&mut buf) {
     return Err((err, stream));
   }
-  let payload_len = msg::MessagePayloadLength::from_be_bytes(buf);
+  let payload_len = message::MessagePayloadLength::from_be_bytes(buf);
 
-  match msg::message_type_from_message_type_id(msg_type_id) {
-    msg::MessageType::PiecesAndPeersForFileRequest => {
-      match msg::types::PiecesAndPeersForFileRequest::from_reader(stream, payload_len as usize) {
+  match message::Message::from_id(message_type_id) {
+    Some(message::Message::FileReq) => {
+      match message::payload::FileReq::from_reader(stream, payload_len as usize) {
         Ok((req_payload, mut stream)) => {
           let res_payload = master::controllers::calculate_pieces(req_payload).as_vec().unwrap();
 
-          if let Err(err) = stream.write(&msg::build_message_buffer(
-            msg::MessageType::PiecesAndPeersForFileResponse,
-            res_payload,
-          )) {
+          if let Err(err) = stream.write(&message::build_message_buffer(message::Message::FileRes, res_payload)) {
             return Err((err, stream));
           }
           return Ok(stream);
@@ -73,10 +70,10 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
         }
       }
     }
-    msg::MessageType::PiecesAndPeersForFileResponse => {
+    Some(message::Message::FileRes) => {
       println!("message recieved, response for file message");
 
-      match msg::types::PiecesAndPeersForFileResponse::from_reader(stream, payload_len as usize) {
+      match message::payload::FileRes::from_reader(stream, payload_len as usize) {
         Ok((payload, stream)) => {
           println!("{:?}", payload.data());
           Ok(stream)
@@ -87,9 +84,10 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
         }
       }
     }
-    msg::MessageType::Ping => {
+    Some(message::Message::Ping) => {
       println!("message recieved, a ping from {}", stream.peer_addr().unwrap());
       Ok(stream)
     }
+    _ => Ok(stream),
   }
 }

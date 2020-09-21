@@ -14,12 +14,13 @@ use hiro::interface;
 #[allow(unused_imports)]
 use hiro::interface::data;
 #[allow(unused_imports)]
-use hiro::interface::msg;
+use hiro::interface::message;
+use hiro::interface::message::payload::{self, Payload};
 use hiro::master;
 
 #[tokio::main]
 async fn main() {
-  // master::controllers::calculate_pieces(msg::GetPiecesFromFileRequest::new(data::File::from(file::File::new(
+  // master::controllers::calculate_pieces(message::GetPiecesFromFileRequest::new(data::File::from(file::File::new(
   //   file::piece::DEFAULT_PIECE_SIZE,
   //   None,
   // ))));
@@ -36,14 +37,11 @@ async fn main() {
     println!("Starting client");
 
     match net::TcpStream::connect(master_addr) {
-      Ok(mut stream) => match stream.write(&msg::build_message_buffer(
-        msg::MessageType::PiecesAndPeersForFileRequest,
-        msg::types::PiecesAndPeersForFileRequest::new(data::File::from(file::File::new(
-          file::piece::DEFAULT_PIECE_SIZE,
-          None,
-        )))
-        .as_vec()
-        .unwrap(),
+      Ok(mut stream) => match stream.write(&message::build_message_buffer(
+        message::Message::FileReq,
+        payload::FileReq::new(data::File::from(file::File::new(file::piece::DEFAULT_PIECE_SIZE, None)))
+          .as_vec()
+          .unwrap(),
       )) {
         Ok(nw) => {
           println!("successfully written {} bytes", nw);

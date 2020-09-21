@@ -4,7 +4,7 @@ use serde_json;
 use std::io;
 use std::marker;
 
-use super::data;
+use crate::interface::data;
 
 pub const MAX_MEMORIZABLE_PAYLOAD_SIZE: usize = 1024 * 1024 * 10; // 10mb
 

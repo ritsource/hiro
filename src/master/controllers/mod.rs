@@ -1,7 +1,6 @@
-#[allow(unused_imports)]
 use crate::file::{self, piece::v1 as piece};
 use crate::interface::data;
-use crate::interface::msg;
+use crate::interface::message::payload::{self, Payload};
 use crate::peer;
 
 #[allow(dead_code)]
@@ -28,10 +27,8 @@ fn assign_pieces_to_peers(ps: Vec<piece::Piece>) -> Vec<(piece::Piece, Vec<peer:
 }
 
 #[allow(dead_code)]
-pub fn calculate_pieces(
-  payload: msg::types::PiecesAndPeersForFileRequest,
-) -> msg::types::PiecesAndPeersForFileResponse {
-  msg::types::PiecesAndPeersForFileResponse::new(
+pub fn calculate_pieces(payload: payload::FileReq) -> payload::FileRes {
+  payload::FileRes::new(
     (Into::<file::File>::into(payload.data()))
       .pieces()
       .into_iter()
