@@ -1,6 +1,7 @@
 use crate::file::{self, piece::v1 as piece};
 use crate::interface::data;
-use crate::interface::message::payload::{self, Payload};
+use crate::interface::payload;
+use crate::interface::payload::Payload;
 use crate::peer;
 
 #[allow(dead_code)]

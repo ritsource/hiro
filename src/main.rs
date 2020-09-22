@@ -9,7 +9,7 @@ use hiro::client;
 use hiro::file;
 use hiro::interface::data;
 use hiro::interface::message;
-use hiro::interface::message::payload::{self, Payload};
+use hiro::interface::payload::{self, Payload};
 use hiro::master;
 
 #[tokio::main]
@@ -26,7 +26,7 @@ async fn main() {
 
     match net::TcpStream::connect(master_addr) {
       Ok(mut stream) => match stream.write(&message::gen_buf_for_rpc(
-        message::Message::FileReq,
+        message::MsgType::FileReq,
         payload::FileReq::new(data::File::from(file::File::new(file::piece::DEFAULT_PIECE_SIZE, None)))
           .as_vec()
           .unwrap(),
