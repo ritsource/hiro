@@ -5,27 +5,15 @@ use std::net;
 
 use std::io::prelude::*;
 
-#[allow(unused_imports)]
+use hiro::client;
 use hiro::file;
-#[allow(unused_imports)]
-use hiro::file::piece::v1 as piece;
-#[allow(unused_imports)]
-use hiro::interface;
-#[allow(unused_imports)]
 use hiro::interface::data;
-#[allow(unused_imports)]
 use hiro::interface::message;
 use hiro::interface::message::payload::{self, Payload};
 use hiro::master;
 
 #[tokio::main]
 async fn main() {
-  // master::controllers::calculate_pieces(message::GetPiecesFromFileRequest::new(data::File::from(file::File::new(
-  //   file::piece::DEFAULT_PIECE_SIZE,
-  //   None,
-  // ))));
-  //
-
   let master_addr: net::SocketAddr = "127.0.0.1:8080".parse().unwrap();
 
   let args: Vec<String> = env::args().collect();
@@ -37,7 +25,7 @@ async fn main() {
     println!("Starting client");
 
     match net::TcpStream::connect(master_addr) {
-      Ok(mut stream) => match stream.write(&message::build_message_buffer(
+      Ok(mut stream) => match stream.write(&message::gen_buf_for_rpc(
         message::Message::FileReq,
         payload::FileReq::new(data::File::from(file::File::new(file::piece::DEFAULT_PIECE_SIZE, None)))
           .as_vec()
@@ -47,7 +35,7 @@ async fn main() {
           println!("successfully written {} bytes", nw);
           println!("... waiting for response ...");
 
-          if let Err((err, stream)) = interface::handle_stream(stream) {
+          if let Err((err, stream)) = client::handler::handle_stream(stream) {
             println!("an error occurred, {}", err);
             println!("terminating connection with {}", stream.peer_addr().unwrap());
             stream.shutdown(net::Shutdown::Both).unwrap();
