@@ -55,3 +55,17 @@ Response -> `HashMap<Chunk, Vec<<Peer>>`
 5. [ Client ] writing pirces of the original file to workers - the client sends data about other workers that the piece
    needs to be copied to.
 
+
+# handling configurations
+
+## what are we gonan have
+
+### 1 client
+CRUD (create, read, update, delete) files
+
+### 1 master
+
+
+### 1+ workers
+
+

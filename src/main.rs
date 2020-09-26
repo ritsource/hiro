@@ -1,52 +1,33 @@
 extern crate hiro;
 
 use std::env;
-use std::net;
-
-use std::io::prelude::*;
+use std::path;
 
 use hiro::client;
-use hiro::file;
-use hiro::interface::data;
-use hiro::interface::message;
-use hiro::interface::payload::{self, Payload};
+use hiro::constants;
 use hiro::master;
 
 #[tokio::main]
 async fn main() {
-  let master_addr: net::SocketAddr = "127.0.0.1:8080".parse().unwrap();
-
   let args: Vec<String> = env::args().collect();
 
   if args.len() > 1 && args[1] == "--master" {
-    println!("Starting master at {}", &master_addr);
-    master::start_server(master_addr).await.unwrap();
+    println!("Starting master at {}", &*constants::MASTER_IP_ADDR);
+    master::start_server(*constants::MASTER_IP_ADDR).await.unwrap();
   } else if args.len() > 1 && args[1] == "--client" {
+    let file_path = if args.len() > 2 {
+      path::Path::new(&args[2])
+    } else {
+      panic!("no file provided")
+    };
+
     println!("Starting client");
-
-    match net::TcpStream::connect(master_addr) {
-      Ok(mut stream) => match stream.write(&message::gen_buf_for_rpc(
-        message::MsgType::FileReq,
-        payload::FileReq::new(data::File::from(file::File::new(file::piece::DEFAULT_PIECE_SIZE, None)))
-          .as_vec()
-          .unwrap(),
-      )) {
-        Ok(nw) => {
-          println!("successfully written {} bytes", nw);
-          println!("... waiting for response ...");
-
-          if let Err((err, stream)) = client::handler::handle_stream(stream) {
-            println!("an error occurred, {}", err);
-            println!("terminating connection with {}", stream.peer_addr().unwrap());
-            stream.shutdown(net::Shutdown::Both).unwrap();
-          }
-        }
-        Err(err) => {
-          println!("Error: couldn't write to connection: {}", err);
-        }
-      },
+    match client::upload_file(file_path) {
+      Ok(_) => {
+        println!("file has successfully been uploaded",);
+      }
       Err(err) => {
-        println!("Error: failed to connect: {}", err);
+        println!("Error: {}", err);
       }
     }
   }

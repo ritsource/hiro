@@ -30,7 +30,7 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
   }
 
   match message::Message::from_reader(stream) {
-    Ok((msg, mut stream)) => {
+    Ok((msg, stream)) => {
       match msg.msg_type() {
         message::MsgType::Ping => {
           println!("message recieved: a ping");
