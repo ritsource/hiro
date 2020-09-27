@@ -21,6 +21,7 @@ pub struct Piece {
   pub file_id: FileID,
   pub index: usize,
   pub length: usize,
+  data: Option<Vec<u8>>,
 }
 
 #[allow(dead_code)]
@@ -70,20 +71,33 @@ impl Piece {
   //   self
   // }
 
-  pub fn id(self) -> PieceID {
+  pub fn with_data(mut self, data: Option<Vec<u8>>) -> Self {
+    self.data = data;
+    self
+  }
+
+  pub fn id(&self) -> PieceID {
     self.id
   }
 
-  pub fn file_id(self) -> FileID {
+  pub fn file_id(&self) -> FileID {
     self.file_id
   }
 
-  pub fn len(self) -> usize {
+  pub fn len(&self) -> usize {
     self.length
   }
 
-  pub fn index(self) -> usize {
+  pub fn index(&self) -> usize {
     self.index
+  }
+
+  pub fn data(self) -> Option<Vec<u8>> {
+    self.data
+  }
+
+  pub fn has_data(&self) -> bool {
+    self.data != None
   }
 
   fn encode_as_header(self) -> Header {
@@ -159,6 +173,7 @@ impl Piece {
       file_id,
       index: u32::from_be_bytes(index_bs) as usize,
       length: u32::from_be_bytes(length_bs) as usize,
+      ..Default::default()
     }
   }
 

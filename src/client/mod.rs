@@ -24,8 +24,8 @@ use crate::interface::payload::Payload;
 // delete multiple files
 
 pub fn upload_file(path: &path::Path) -> Result<(), io::Error> {
-  // 1. send file metadata to master
-  // 2. get Piece-Peer map from master
+  // 1. send file metadata to master [*]
+  // 2. get Piece-Peer map from master [*]
   // 3. read and upload file chunks to workers
 
   // println!("uploading file, {}", path.file_name());
@@ -39,22 +39,18 @@ pub fn upload_file(path: &path::Path) -> Result<(), io::Error> {
     )) {
       Ok(nw) => {
         println!("successfully written {} bytes", nw);
-        println!("... waiting for response ...");
+        println!("waiting for response ...");
 
         if let Err((err, stream)) = handler::handle_stream(stream) {
           println!("an error occurred, {}", err);
           println!("terminating connection with {}", stream.peer_addr().unwrap());
-          stream.shutdown(net::Shutdown::Both).unwrap();
+          return Err(err);
         }
-      }
-      Err(err) => {
-        println!("Error: couldn't write to connection: {}", err);
-      }
-    },
-    Err(err) => {
-      println!("Error: failed to connect: {}", err);
-    }
-  }
 
-  Ok(())
+        Ok(())
+      }
+      Err(err) => Err(err),
+    },
+    Err(err) => Err(err),
+  }
 }

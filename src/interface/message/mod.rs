@@ -15,6 +15,8 @@ pub enum MsgType {
   Error,
   FileReq,
   FileRes,
+  PieceUploadReq,
+  PieceUploadRes,
 }
 
 impl Default for MsgType {
@@ -30,6 +32,8 @@ impl MsgType {
       Self::Error => 2,
       Self::FileReq => 3,
       Self::FileRes => 4,
+      Self::PieceUploadReq => 5,
+      Self::PieceUploadRes => 6,
     }
   }
 
@@ -40,6 +44,8 @@ impl MsgType {
       2 => Self::Error,
       3 => Self::FileReq,
       4 => Self::FileRes,
+      5 => Self::PieceUploadReq,
+      6 => Self::PieceUploadRes,
       _ => return None,
     })
   }

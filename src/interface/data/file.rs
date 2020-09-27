@@ -1,7 +1,7 @@
 use crate::file;
 use serde::{Deserialize, Serialize};
 
-#[derive(Default, Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct File {
   pub id: file::FileID,
   pub length: usize,

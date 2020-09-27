@@ -18,7 +18,7 @@ impl ID {
     self.0
   }
 
-  pub fn as_hex_string(&self) -> String {
+  pub fn to_hex_string(&self) -> String {
     self
       .0
       .to_vec()
@@ -31,12 +31,12 @@ impl ID {
 
 impl fmt::Display for ID {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", self.as_hex_string())
+    write!(f, "{}", self.to_hex_string())
   }
 }
 
 impl fmt::Debug for ID {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", self.as_hex_string())
+    write!(f, "{}", self.to_hex_string())
   }
 }

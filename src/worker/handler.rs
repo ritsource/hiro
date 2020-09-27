@@ -8,6 +8,9 @@ use crate::interface::message;
 use crate::interface::payload;
 use crate::interface::payload::Payload;
 
+use super::controllers;
+
+#[allow(dead_code)]
 pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::Error, net::TcpStream)> {
   use constants::PROTOCOL_IDENTIFIER_V1;
 
@@ -27,6 +30,7 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
     }
     return Ok(stream);
   }
+
   match message::Message::from_reader(stream) {
     Ok((msg, stream)) => {
       match msg.msg_type() {
@@ -34,18 +38,24 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
           println!("message recieved: a ping");
           Ok(stream)
         }
-        message::MsgType::FileRes => match payload::FileRes::from_reader(stream, msg.payload_len() as usize) {
-          Ok((payload, stream)) => {
-            println!("{:?}", payload.data());
-            Ok(stream)
-          }
-          Err((err, stream)) => Err((err, stream)),
-        },
-        message::MsgType::PieceUploadRes => {
-          match payload::PieceUploadRes::from_reader(stream, msg.payload_len() as usize) {
-            Ok((payload, stream)) => {
-              println!("file successfully uploaded, response recieved {}", payload.data());
-              Ok(stream)
+        message::MsgType::PieceUploadReq => {
+          match payload::PieceUploadReq::from_reader(stream, msg.payload_len() as usize) {
+            Ok((pld, mut stream)) => {
+              println!("message recieved: piece upload");
+              println!("{:?}", pld.clone().data());
+
+              let resp_data = match controllers::handle_piece_upload_message(pld) {
+                Ok(pld) => message::gen_buf_for_rpc(message::MsgType::PieceUploadRes, pld.as_vec().unwrap()),
+                Err(err) => message::gen_buf_for_rpc(message::MsgType::Error, format!("{}", err).as_bytes().to_vec()),
+              };
+
+              match stream.write(&resp_data) {
+                Ok(nw) => {
+                  println!("written {} bytes", nw);
+                  Ok(stream)
+                }
+                Err(err) => Err((err, stream)),
+              }
             }
             Err((err, stream)) => Err((err, stream)),
           }

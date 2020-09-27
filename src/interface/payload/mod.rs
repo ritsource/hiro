@@ -4,13 +4,12 @@ use serde_json;
 use std::io;
 use std::marker;
 
+use crate::constants;
 use crate::interface::data;
-
-pub const MAX_MEMORIZABLE_PAYLOAD_SIZE: usize = 1024 * 1024 * 10; // 10mb
 
 // NOTE: create serialize and deserialize traits
 // and, make payload to be it's super trait
-pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::Sized {
+pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::Sized + Clone {
   fn new(data: D) -> Self;
 
   fn data(self) -> D;
@@ -23,7 +22,7 @@ pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::S
   where
     R: io::Read,
   {
-    if offset > MAX_MEMORIZABLE_PAYLOAD_SIZE {
+    if offset > constants::MAX_MEMORIZABLE_PAYLOAD_SIZE {
       return Err((
         io::Error::new(io::ErrorKind::Other, "payload size exceeded maximum memorizable limit"),
         reader,
@@ -62,6 +61,7 @@ pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::S
   }
 }
 
+#[derive(Clone)]
 pub struct FileReq(data::File);
 
 impl Payload<'_, data::File> for FileReq {
@@ -88,6 +88,7 @@ impl Payload<'_, data::File> for FileReq {
   }
 }
 
+#[derive(Clone)]
 pub struct FileRes(Vec<(data::Piece, data::Peer)>);
 
 impl Payload<'_, Vec<(data::Piece, data::Peer)>> for FileRes {
@@ -101,6 +102,60 @@ impl Payload<'_, Vec<(data::Piece, data::Peer)>> for FileRes {
 
   fn from_vec(payload: Vec<u8>) -> Result<Self, io::Error> {
     match serde_json::from_slice::<Vec<(data::Piece, data::Peer)>>(&payload) {
+      Ok(data) => Ok(Self::new(data)),
+      Err(err) => Err(io::Error::new(io::ErrorKind::Other, err)),
+    }
+  }
+
+  fn as_vec(self) -> Result<Vec<u8>, io::Error> {
+    match serde_json::to_vec(&self.0) {
+      Ok(vec) => Ok(vec),
+      Err(err) => Err(io::Error::new(io::ErrorKind::Other, err)),
+    }
+  }
+}
+
+#[derive(Clone)]
+pub struct PieceUploadReq(data::Piece);
+
+impl Payload<'_, data::Piece> for PieceUploadReq {
+  fn new(data: data::Piece) -> Self {
+    Self(data)
+  }
+
+  fn data(self) -> data::Piece {
+    self.0
+  }
+
+  fn from_vec(payload: Vec<u8>) -> Result<Self, io::Error> {
+    match serde_json::from_slice::<data::Piece>(&payload) {
+      Ok(data) => Ok(Self::new(data)),
+      Err(err) => Err(io::Error::new(io::ErrorKind::Other, err)),
+    }
+  }
+
+  fn as_vec(self) -> Result<Vec<u8>, io::Error> {
+    match serde_json::to_vec(&self.0) {
+      Ok(vec) => Ok(vec),
+      Err(err) => Err(io::Error::new(io::ErrorKind::Other, err)),
+    }
+  }
+}
+
+#[derive(Clone)]
+pub struct PieceUploadRes(bool);
+
+impl Payload<'_, bool> for PieceUploadRes {
+  fn new(data: bool) -> Self {
+    Self(data)
+  }
+
+  fn data(self) -> bool {
+    self.0
+  }
+
+  fn from_vec(payload: Vec<u8>) -> Result<Self, io::Error> {
+    match serde_json::from_slice::<bool>(&payload) {
       Ok(data) => Ok(Self::new(data)),
       Err(err) => Err(io::Error::new(io::ErrorKind::Other, err)),
     }

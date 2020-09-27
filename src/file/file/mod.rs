@@ -1,5 +1,6 @@
+use crate::constants::DEFAULT_PIECE_SIZE;
 #[allow(unused_imports)]
-use crate::file::piece::{v1::Piece, DEFAULT_PIECE_SIZE};
+use crate::file::piece::v1::Piece;
 use crate::id::v1 as id;
 
 pub type FileID = id::ID;
