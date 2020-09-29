@@ -12,3 +12,7 @@ pub mod interface;
 pub mod master;
 pub mod peer;
 pub mod worker;
+
+pub mod piece {
+  pub use super::file::piece::v1::*;
+}

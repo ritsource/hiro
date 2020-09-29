@@ -6,10 +6,11 @@ use crate::peer;
 
 #[allow(dead_code)]
 fn get_workers() -> Vec<peer::Peer> {
-  vec![
-    peer::Peer::new_worker("192.168.0.246:8080").unwrap(),
-    peer::Peer::new_worker("192.168.0.246:8080").unwrap(),
-  ]
+  // vec![
+  //   peer::Peer::new_worker("192.168.0.246:8080").unwrap(),
+  //   peer::Peer::new_worker("192.168.0.246:8080").unwrap(),
+  // ]
+  vec![peer::Peer::new_worker("127.0.0.1:8090").unwrap()]
 }
 
 // fn get_workers() -> Vec<data::Peer> {

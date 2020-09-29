@@ -22,6 +22,15 @@ pub struct Piece {
   pub index: usize,
   pub length: usize,
   data: Option<Vec<u8>>,
+  // NOTE: use `from` and `to`
+  // to represent piece offset
+  // on file; better than `index`
+  // and `length`
+  // either `start_offset` and
+  // `end_offset`
+  // or, `start_offset` & `length`
+  // start_offset: usize;
+  // end_offset: usize;
 }
 
 #[allow(dead_code)]
