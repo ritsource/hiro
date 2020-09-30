@@ -60,14 +60,14 @@ impl File {
   pub fn pieces(&self) -> Vec<Piece> {
     (0..self.length)
       .step_by(DEFAULT_PIECE_SIZE)
-      .map(|i| {
-        let len = if (self.length - (i * DEFAULT_PIECE_SIZE)) > DEFAULT_PIECE_SIZE {
-          self.length - i * DEFAULT_PIECE_SIZE
-        } else {
+      .map(|start| {
+        let len = if (self.length - start) > DEFAULT_PIECE_SIZE {
           DEFAULT_PIECE_SIZE
+        } else {
+          self.length - start
         };
 
-        Piece::new(self.id, len, i)
+        Piece::new(self.id, start as u32, len as u32)
       })
       .collect()
   }

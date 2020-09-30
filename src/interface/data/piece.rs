@@ -14,8 +14,8 @@ use serde::{Deserialize, Serialize};
 pub struct Piece {
   pub id: piece::PieceID,
   pub file_id: file::FileID,
-  pub index: usize,
-  pub length: usize,
+  pub start: u32,
+  pub length: u32,
   data: Option<Vec<u8>>,
 }
 
@@ -38,10 +38,10 @@ impl Piece {
 impl From<piece::Piece> for Piece {
   fn from(p: piece::Piece) -> Self {
     Self {
-      id: p.id,
-      file_id: p.file_id,
-      index: p.index,
-      length: p.length,
+      id: p.id(),
+      file_id: p.file_id(),
+      start: p.start(),
+      length: p.length(),
       data: p.data(),
     }
   }
@@ -49,6 +49,12 @@ impl From<piece::Piece> for Piece {
 
 impl Into<piece::Piece> for Piece {
   fn into(self) -> piece::Piece {
-    piece::Piece::new_with_id(self.id, self.file_id, self.length, self.index).with_data(self.data())
+    // since length and start both arguements are of same type, to avoid any
+    // error we are making sure that we pass the correct values to Piece
+    // using specific methods for start (with_start) and length (with_length)
+    piece::Piece::new_with_id(self.id, self.file_id, self.start, self.length)
+      .with_start(self.start)
+      .with_length(self.length)
+      .with_data(self.data())
   }
 }

@@ -30,15 +30,19 @@ fn assign_pieces_to_peers(ps: Vec<piece::Piece>) -> Vec<(piece::Piece, Vec<peer:
 
 #[allow(dead_code)]
 pub fn calculate_pieces(payload: payload::FileReq) -> payload::FileRes {
+  // NOTE: make sure workers.len() can never be 0
+  let workers: Vec<data::Peer> = get_workers().into_iter().map(|w| data::Peer::from(w)).collect();
+  let mut y = 0;
+
   payload::FileRes::new(
     (Into::<file::File>::into(payload.data()))
       .pieces()
       .into_iter()
-      .zip(get_workers().into_iter())
-      .map(|(x, y)| {
-        println!("{:?}", x);
-        println!("{:?}", y);
-        (data::Piece::from(x), data::Peer::from(y))
+      .map(|piece| {
+        if y > workers.len() - 1 {
+          y = 0
+        }
+        (data::Piece::from(piece), data::Peer::from(workers[y]))
       })
       .collect(),
   )

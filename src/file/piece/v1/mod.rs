@@ -17,39 +17,30 @@ pub type PieceID = id::ID;
 
 #[derive(Default, Debug)]
 pub struct Piece {
-  pub id: PieceID,
-  pub file_id: FileID,
-  pub index: usize,
-  pub length: usize,
+  id: PieceID,
+  file_id: FileID,
+  start: u32, // start offset of piece in file
+  length: u32,
   data: Option<Vec<u8>>,
-  // NOTE: use `from` and `to`
-  // to represent piece offset
-  // on file; better than `index`
-  // and `length`
-  // either `start_offset` and
-  // `end_offset`
-  // or, `start_offset` & `length`
-  // start_offset: usize;
-  // end_offset: usize;
 }
 
 #[allow(dead_code)]
 impl Piece {
-  pub fn new(file_id: FileID, length: usize, index: usize) -> Self {
+  pub fn new(file_id: FileID, start: u32, length: u32) -> Self {
     Self {
       file_id,
+      start,
       length,
-      index,
       ..Default::default()
     }
     .with_new_id()
   }
 
-  pub fn new_with_id(id: PieceID, file_id: FileID, length: usize, index: usize) -> Self {
+  pub fn new_with_id(id: PieceID, file_id: FileID, start: u32, length: u32) -> Self {
     Self {
       file_id,
+      start,
       length,
-      index,
       ..Default::default()
     }
     .with_id(id)
@@ -65,20 +56,20 @@ impl Piece {
     self
   }
 
-  // pub fn with_file_id(mut self, file_id: FileID) -> Self {
-  //   self.file_id = file_id;
-  //   self
-  // }
+  pub fn with_file_id(mut self, file_id: FileID) -> Self {
+    self.file_id = file_id;
+    self
+  }
 
-  // pub fn with_len(mut self, length: usize) -> Self {
-  //   self.length = length;
-  //   self
-  // }
+  pub fn with_length(mut self, length: u32) -> Self {
+    self.length = length;
+    self
+  }
 
-  // pub fn with_index(mut self, index: usize) -> Self {
-  //   self.index = index;
-  //   self
-  // }
+  pub fn with_start(mut self, start: u32) -> Self {
+    self.start = start;
+    self
+  }
 
   pub fn with_data(mut self, data: Option<Vec<u8>>) -> Self {
     self.data = data;
@@ -93,12 +84,12 @@ impl Piece {
     self.file_id
   }
 
-  pub fn len(&self) -> usize {
+  pub fn length(&self) -> u32 {
     self.length
   }
 
-  pub fn index(&self) -> usize {
-    self.index
+  pub fn start(&self) -> u32 {
+    self.start
   }
 
   pub fn data(self) -> Option<Vec<u8>> {
@@ -109,7 +100,7 @@ impl Piece {
     self.data != None
   }
 
-  fn encode_as_header(self) -> Header {
+  fn encode_as_header(&self) -> Header {
     unsafe {
       use alloc::{alloc, dealloc, Layout};
       use mem::size_of;
@@ -121,7 +112,7 @@ impl Piece {
       *(ptr as *mut VersionID) = VERSION;
       x += size_of::<VersionID>() as isize;
 
-      *(ptr.offset(x) as *mut [u8; 4]) = (self.index as u32).to_be_bytes();
+      *(ptr.offset(x) as *mut [u8; 4]) = (self.start as u32).to_be_bytes();
       x += size_of::<[u8; 4]>() as isize;
 
       *(ptr.offset(x) as *mut [u8; 4]) = (self.length as u32).to_be_bytes();
@@ -153,8 +144,8 @@ impl Piece {
     x = y;
     y += size_of::<[u8; 4]>();
 
-    let mut index_bs: [u8; 4] = [0; size_of::<[u8; 4]>()];
-    index_bs.copy_from_slice(&buf[x..y]);
+    let mut start_bs: [u8; 4] = [0; size_of::<[u8; 4]>()];
+    start_bs.copy_from_slice(&buf[x..y]);
 
     x = y;
     y += size_of::<[u8; 4]>();
@@ -180,8 +171,8 @@ impl Piece {
     Self {
       id,
       file_id,
-      index: u32::from_be_bytes(index_bs) as usize,
-      length: u32::from_be_bytes(length_bs) as usize,
+      start: u32::from_be_bytes(start_bs),
+      length: u32::from_be_bytes(length_bs),
       ..Default::default()
     }
   }

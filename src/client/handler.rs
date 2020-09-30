@@ -36,9 +36,7 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
           Ok(stream)
         }
         message::MsgType::FileRes => match payload::FileRes::from_reader(stream, msg.payload_len() as usize) {
-          Ok((payload, stream)) => {
-            // println!("{:?}", payload.clone().data());
-
+          Ok((payload, mut stream)) => {
             use crate::interface::data;
             use crate::peer::Peer;
             use crate::piece::Piece;
@@ -47,18 +45,18 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
             use std::io::prelude::{Read, Seek, Write};
 
             let payload: Vec<(data::Piece, data::Peer)> = payload.data();
-            let x: usize = 0;
 
             // it's going to be something like array of tasks,
             // which we are gonna task.execute() later
             let _arr: Vec<bool> = payload
               .into_iter()
               .map(|(piece, peer)| {
-                println!("** Piece ** {:?}\n** Peer ** {:?}\n", piece, peer);
+                println!("\nPiece({}) -> Peer({})", piece.id, peer.id);
+                println!("Piece: start({}), length({})", piece.start, piece.length);
 
-                let mut f = fs::File::open("data/index.txt").expect("couldn't open");
+                let mut f = fs::File::open("data/ipsum.text").expect("couldn't open");
 
-                f.seek(io::SeekFrom::Start(x as u64)).expect("coudn't seek");
+                f.seek(io::SeekFrom::Start(piece.start as u64)).expect("coudn't seek");
 
                 let buf = {
                   let mut total: usize = 0;
@@ -67,11 +65,10 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
 
                   while match f.read(&mut b) {
                     Ok(nr) => {
-                      println!("- read {} bytes", nr);
                       total += nr;
                       buf.append(&mut b[..nr].to_vec());
 
-                      if total >= piece.length {
+                      if total >= piece.length as usize {
                         false
                       } else if nr == 0 {
                         // return Err((io::Error::new(io::ErrorKind::Other, "unable to read any data from file"), stream));
@@ -89,19 +86,37 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
 
                   buf
                 };
-                println!("Data - \"{}\"", String::from_utf8_lossy(&buf[..]));
 
-                //                  let resp_data = message::gen_buf_for_rpc(message::MsgType::PieceUploadReq, pld.as_vec().unwrap());
-                //
-                //                   match stream.write(&resp_data) {
-                //                     Ok(nw) => {
-                //                       println!("written {} bytes", nw);
-                //                       Ok(stream)
-                //                     }
-                //                     Err(err) => Err((err, stream)),
-                //                   }
+                println!("** data read ** \"{}\"", String::from_utf8_lossy(&buf[..]));
+                let piece = piece.with_data(Some(buf));
 
-                true
+                let piece_id = piece.id;
+                let pld = payload::PieceUploadReq::new(piece);
+                let piece_req_data = message::gen_buf_for_rpc(message::MsgType::PieceUploadReq, pld.as_vec().unwrap());
+
+                match net::TcpStream::connect(peer.addr) {
+                  Ok(mut stream) => match stream.write(&piece_req_data) {
+                    Ok(nw) => {
+                      println!("successfully written {} bytes", nw);
+                      println!("waiting for response ...");
+                      if let Err((err, stream)) = handle_stream(stream) {
+                        println!("an error occurred, {}", err);
+                        println!("terminating connection with {}", stream.peer_addr().unwrap());
+                        return false;
+                      }
+                      println!("Piece({}) has been uploaded successfully", piece_id);
+                      true
+                    }
+                    Err(err) => {
+                      println!("** Error: {}", err);
+                      false
+                    }
+                  },
+                  Err(err) => {
+                    println!("** Error: {}", err);
+                    false
+                  }
+                }
               })
               .collect();
 
