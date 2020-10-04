@@ -64,6 +64,24 @@ impl Message {
     Self { msg_type, payload_len }
   }
 
+  pub fn serialize(self) -> Vec<u8> {
+    let mut buf = self.msg_type().id().to_be_bytes().to_vec();
+    buf.extend(self.payload_len().to_be_bytes().iter());
+    buf
+  }
+
+  pub fn serialize_with_prefix(self, mut buf: Vec<u8>) -> Vec<u8> {
+    buf.extend(self.serialize().iter());
+    buf
+  }
+
+  pub fn deserialize_from_reader<R>(mut reader: R) -> Result<(Self, R), (io::Error, R)>
+  where
+    R: io::Read + io::Write,
+  {
+    Self::from_reader(reader)
+  }
+
   pub fn from_reader<R>(mut reader: R) -> Result<(Self, R), (io::Error, R)>
   where
     R: io::Read + io::Write,
@@ -91,13 +109,6 @@ impl Message {
       reader,
     ))
   }
-
-  // pub fn to_vec(self) -> Vec<u8> {
-  //   let mut buf = constants::PROTOCOL_IDENTIFIER_V1.to_vec();
-  //   buf.extend(self.message_id().to_be_bytes().iter());
-  //   buf.extend(self.payload_len().to_be_bytes().iter());
-  //   buf
-  // }
 
   pub fn msg_type(&self) -> MsgType {
     self.msg_type.clone()

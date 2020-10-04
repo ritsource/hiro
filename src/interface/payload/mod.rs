@@ -1,6 +1,7 @@
 use serde;
 use serde_json;
 
+use std::fmt;
 use std::io;
 use std::marker;
 
@@ -9,7 +10,7 @@ use crate::interface::data;
 
 // NOTE: create serialize and deserialize traits
 // and, make payload to be it's super trait
-pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::Sized + Clone {
+pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::Sized + Clone + fmt::Debug {
   fn new(data: D) -> Self;
 
   fn data(self) -> D;
@@ -61,7 +62,7 @@ pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::S
   }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct FileReq(data::File);
 
 impl Payload<'_, data::File> for FileReq {
@@ -88,7 +89,7 @@ impl Payload<'_, data::File> for FileReq {
   }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct FileRes(Vec<(data::Piece, data::Peer)>);
 
 impl Payload<'_, Vec<(data::Piece, data::Peer)>> for FileRes {
@@ -115,7 +116,7 @@ impl Payload<'_, Vec<(data::Piece, data::Peer)>> for FileRes {
   }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PieceUploadReq(data::Piece);
 
 impl Payload<'_, data::Piece> for PieceUploadReq {
@@ -142,7 +143,7 @@ impl Payload<'_, data::Piece> for PieceUploadReq {
   }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PieceUploadRes(bool);
 
 impl Payload<'_, bool> for PieceUploadRes {

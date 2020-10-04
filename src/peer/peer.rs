@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::io;
-use std::net::{SocketAddr, TcpStream};
+use std::net;
 
 use crate::id::v1 as id;
 
@@ -18,13 +18,13 @@ pub type PeerID = id::ID;
 pub struct Peer {
   pub id: PeerID,
   pub peer_type: PeerType,
-  pub addr: SocketAddr,
-  pub stream: Option<TcpStream>,
+  pub addr: net::SocketAddr,
+  pub stream: Option<net::TcpStream>,
 }
 
 #[allow(dead_code)]
 impl Peer {
-  pub fn new(addr: SocketAddr, peer_type: PeerType) -> Self {
+  pub fn new(addr: net::SocketAddr, peer_type: PeerType) -> Self {
     Self {
       id: PeerID::new(),
       peer_type: peer_type,
@@ -82,17 +82,17 @@ impl Peer {
     self.id
   }
 
-  pub fn connection(self) -> Option<TcpStream> {
+  pub fn connection(self) -> Option<net::TcpStream> {
     self.stream
   }
 
-  pub fn connect(&mut self) -> Result<(), String> {
-    match TcpStream::connect(&self.addr) {
-      Ok(s) => {
-        self.stream = Some(s);
+  pub fn connect(mut self) -> Result<(), io::Error> {
+    match net::TcpStream::connect(&self.addr) {
+      Ok(stream) => {
+        self.stream = Some(stream);
         Ok(())
       }
-      Err(e) => Err(format!("{:?}", e)),
+      Err(err) => Err(err),
     }
   }
 }

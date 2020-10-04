@@ -1,8 +1,10 @@
 use serde::{Deserialize, Serialize};
+use std::cmp::{Eq, PartialEq};
 use std::fmt;
+use std::hash::Hash;
 use uuid;
 
-#[derive(Serialize, Deserialize, Default, Copy, Clone)]
+#[derive(Serialize, Deserialize, Default, Copy, Clone, Hash, Eq, PartialEq)]
 pub struct ID(uuid::Bytes);
 
 impl ID {

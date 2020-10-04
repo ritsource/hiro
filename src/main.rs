@@ -26,7 +26,7 @@ async fn main() {
     };
 
     println!("Starting client");
-    match client::upload_file(file_path) {
+    match client::upload_file(file_path).await {
       Ok(_) => {
         println!("file has successfully been uploaded",);
       }

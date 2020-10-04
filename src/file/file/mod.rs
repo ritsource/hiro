@@ -5,7 +5,7 @@ use crate::id::v1 as id;
 
 pub type FileID = id::ID;
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct File {
   pub id: FileID,
   pub length: usize,
