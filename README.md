@@ -70,3 +70,9 @@ CRUD (create, read, update, delete) files
 
 
 # Tasks (and TaskQueue)
+
+
+
+# Notes
+
+Check out [https://en.wikipedia.org/wiki/Server_Message_Block](https://en.wikipedia.org/wiki/Server_Message_Block)
