@@ -31,7 +31,7 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
     return Ok(stream);
   }
 
-  match message::Message::from_reader(stream) {
+  match message::MessageMetadata::from_reader(stream) {
     Ok((msg, stream)) => {
       match msg.msg_type() {
         message::MsgType::Ping => {

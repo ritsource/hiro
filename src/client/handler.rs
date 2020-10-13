@@ -34,7 +34,7 @@ where
     return Ok((None, stream));
   }
 
-  match message::Message::from_reader(stream) {
+  match message::MessageMetadata::from_reader(stream) {
     Ok((msg, stream)) => {
       match msg.msg_type() {
         message::MsgType::Ping => {

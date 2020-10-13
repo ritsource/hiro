@@ -3,7 +3,7 @@ mod helpers;
 use std::io;
 use std::mem;
 
-pub use helpers::gen_buf_for_rpc;
+pub use helpers::{gen_buf_for_rpc, new_message_buffer};
 
 pub type MsgPayloadLen = u32;
 
@@ -51,7 +51,8 @@ impl MsgType {
   }
 }
 
-pub struct Message {
+#[derive(Debug, Clone)]
+pub struct MessageMetadata {
   msg_type: MsgType,
   payload_len: MsgPayloadLen,
   // pub from: data::Peer,
@@ -59,7 +60,7 @@ pub struct Message {
 }
 
 #[allow(dead_code)]
-impl Message {
+impl MessageMetadata {
   pub fn new(msg_type: MsgType, payload_len: MsgPayloadLen) -> Self {
     Self { msg_type, payload_len }
   }

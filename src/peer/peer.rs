@@ -1,8 +1,10 @@
 use serde::{Deserialize, Serialize};
+use std::collections::VecDeque;
 use std::io;
 use std::net;
 
 use crate::id::v1 as id;
+use crate::interface::message;
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub enum PeerType {
@@ -13,13 +15,26 @@ pub enum PeerType {
 
 pub type PeerID = id::ID;
 
-#[allow(dead_code)]
+#[derive(Debug)]
+pub enum PeerState {
+  BeingWritten,
+  BeingRead,
+  Free,
+}
+
+impl Default for PeerState {
+  fn default() -> Self {
+    Self::Free
+  }
+}
+
 #[derive(Debug)]
 pub struct Peer {
   pub id: PeerID,
   pub peer_type: PeerType,
   pub addr: net::SocketAddr,
   pub stream: Option<net::TcpStream>,
+  pub state: PeerState,
 }
 
 #[allow(dead_code)]
@@ -30,6 +45,7 @@ impl Peer {
       peer_type: peer_type,
       addr: addr,
       stream: None,
+      state: PeerState::Free,
     }
   }
 
@@ -84,6 +100,14 @@ impl Peer {
 
   pub fn connection(self) -> Option<net::TcpStream> {
     self.stream
+  }
+
+  pub fn is_connected(self) -> bool {
+    if let None = self.stream {
+      false
+    } else {
+      true
+    }
   }
 
   pub fn connect(mut self) -> Result<(), io::Error> {

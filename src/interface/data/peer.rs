@@ -27,6 +27,7 @@ impl Into<peer::Peer> for Peer {
       peer_type: self.peer_type,
       addr: self.addr,
       stream: Default::default(),
+      state: Default::default(),
     }
   }
 }
