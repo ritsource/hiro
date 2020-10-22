@@ -2,7 +2,7 @@ use std::fs;
 use std::io;
 use std::path;
 
-use std::io::prelude::{Read, Seek, Write};
+use std::io::prelude::{Read, Seek};
 
 use crate::file;
 
@@ -23,7 +23,7 @@ pub fn read_file_matadata(path: &path::Path) -> Result<file::File, io::Error> {
 }
 
 pub async fn read_file_content(path: &path::Path, start: usize, length: usize) -> Result<Vec<u8>, io::Error> {
-  let mut f = fs::File::open("data/ipsum.text")?;
+  let mut f = fs::File::open(path)?;
   f.seek(io::SeekFrom::Start(start as u64))?;
 
   let mut total: usize = 0;

@@ -1,10 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::collections::VecDeque;
 use std::io;
 use std::net;
 
 use crate::id::v1 as id;
-use crate::interface::message;
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub enum PeerType {

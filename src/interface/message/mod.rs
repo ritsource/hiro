@@ -76,7 +76,7 @@ impl MessageMetadata {
     buf
   }
 
-  pub fn deserialize_from_reader<R>(mut reader: R) -> Result<(Self, R), (io::Error, R)>
+  pub fn deserialize_from_reader<R>(reader: R) -> Result<(Self, R), (io::Error, R)>
   where
     R: io::Read + io::Write,
   {

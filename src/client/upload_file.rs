@@ -8,6 +8,7 @@ use std::io::Write;
 use super::controllers;
 use super::handler;
 use crate::constants;
+#[allow(unused_imports)]
 use crate::file;
 use crate::interface::data;
 use crate::interface::message;
@@ -38,14 +39,14 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
         println!("waiting for response ...");
 
         match handler::handle_stream::<payload::FileRes>(stream).await {
-          Ok((Some(payload), stream)) => {
+          Ok((Some(payload), _stream)) => {
             // master responded with pieces and peer mappings
             use collections::HashMap;
             use peer::Peer;
             use piece::Piece;
 
-            let peer_by_pieces_map: HashMap<Peer, Vec<Piece>> = HashMap::new();
-            let piece_state_map: HashMap<Piece, (bool, Piece)> = HashMap::new();
+            let _peer_by_pieces_map: HashMap<Peer, Vec<Piece>> = HashMap::new();
+            let _piece_state_map: HashMap<Piece, (bool, Piece)> = HashMap::new();
 
             for (piece, peer) in payload.data().iter() {
               println!("\npieces, {:?}", piece);
@@ -77,6 +78,7 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
   }
 }
 
+#[allow(dead_code)]
 async fn handle_peer() -> Result<(), io::Error> {
   Ok(())
 }
