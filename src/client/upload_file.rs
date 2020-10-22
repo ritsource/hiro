@@ -17,6 +17,8 @@ use crate::piece;
 
 use crate::interface::payload::Payload;
 
+// struct PieceC {}
+
 pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
   // 1. send file metadata to master [*]
   // 2. get Piece-Peer map from master [*]
@@ -43,6 +45,8 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
             use piece::Piece;
 
             let peer_by_pieces_map: HashMap<Peer, Vec<Piece>> = HashMap::new();
+            let piece_state_map: HashMap<Piece, (bool, Piece)> = HashMap::new();
+
             for (piece, peer) in payload.data().iter() {
               println!("\npieces, {:?}", piece);
               println!("\npeer, {:?}", peer);
@@ -71,4 +75,8 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
     },
     Err(err) => Err(err),
   }
+}
+
+async fn handle_peer() -> Result<(), io::Error> {
+  Ok(())
 }
