@@ -54,19 +54,52 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
 
               let mut peer = Into::<Peer>::into(*peer);
 
-              match peer
-                .write_message(
+              if !peer.is_connected() {
+                peer.connect()?;
+              }
+
+              if let Some(mut peer_stream) = peer.connection() {
+                let msg_buf = message::message_buffer_from_payload(
                   message::MsgType::PieceUploadReq,
                   payload::PieceUploadReq::new(piece.clone()),
-                )
-                .await
-              {
-                Ok(nw) => {}
-                Err(err) => {
-                  println!("an error occurred, {}", err);
+                )?;
+
+                match peer_stream.write(&msg_buf) {
+                  Ok(nw) => {
+                    println!("successfully written {} bytes", nw);
+                    println!("waiting for response ...");
+
+                    match handler::handle_stream::<payload::PieceUploadRes>(peer_stream).await {
+                      Ok((Some(resp), peer_stream)) => {}
+                      Ok((None, peer_stream)) => {}
+                      Err(err) => {}
+                    }
+                  }
+                  Err(err) => {
+                    println!("an error occurred, {}", err);
+                  }
                 }
+
+                // Err that represents worker failure
+                // Err(X::ErrorKind::WorkerFailure) => {},
               }
             }
+
+            // match peer
+            //   .write_message(
+            //     message::MsgType::PieceUploadReq,
+            //     payload::PieceUploadReq::new(piece.clone()),
+            //   )
+            //   .await
+            // {
+            //   Ok(nw) => {
+            //     println!("successfully written {} bytes", nw);
+            //     println!("waiting for response ...");
+            //   }
+            //   Err(err) => {
+            //     println!("an error occurred, {}", err);
+            //   }
+            // }
           }
           Ok((None, stream)) => {
             println!("an error occurred, master responsed with invalid data");

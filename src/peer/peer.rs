@@ -100,7 +100,7 @@ impl Peer {
     self.id
   }
 
-  fn connection(self) -> Option<net::TcpStream> {
+  pub fn connection(self) -> Option<net::TcpStream> {
     self.stream
   }
 
@@ -112,7 +112,7 @@ impl Peer {
     }
   }
 
-  fn connect(&mut self) -> Result<(), io::Error> {
+  pub fn connect(&mut self) -> Result<(), io::Error> {
     match net::TcpStream::connect(&self.addr) {
       Ok(stream) => {
         self.stream = Some(stream);
