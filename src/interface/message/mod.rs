@@ -3,7 +3,9 @@ mod helpers;
 use std::io;
 use std::mem;
 
-pub use helpers::{gen_buf_for_rpc, new_message_buffer};
+pub use helpers::{
+  gen_buf_for_rpc, message_buffer_from_payload, message_buffer_from_payload_buf, new_message_buffer,
+};
 
 pub type MsgPayloadLen = u32;
 
@@ -62,7 +64,10 @@ pub struct MessageMetadata {
 #[allow(dead_code)]
 impl MessageMetadata {
   pub fn new(msg_type: MsgType, payload_len: MsgPayloadLen) -> Self {
-    Self { msg_type, payload_len }
+    Self {
+      msg_type,
+      payload_len,
+    }
   }
 
   pub fn serialize(self) -> Vec<u8> {
@@ -103,7 +108,12 @@ impl MessageMetadata {
       Self::new(
         match MsgType::from_id(msg_type_id) {
           Some(t) => t,
-          None => return Err((io::Error::new(io::ErrorKind::Other, "invalid message-type-id"), reader)),
+          None => {
+            return Err((
+              io::Error::new(io::ErrorKind::Other, "invalid message-type-id"),
+              reader,
+            ))
+          }
         },
         payload_len,
       ),

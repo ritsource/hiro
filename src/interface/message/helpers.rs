@@ -7,7 +7,11 @@ pub fn gen_buf_for_rpc(msg: super::MsgType, payload: Vec<u8>) -> Vec<u8> {
   let mut buf = constants::PROTOCOL_IDENTIFIER_V1.to_vec();
   buf.extend(msg.id().to_be_bytes().iter());
 
-  buf.extend(((payload.len()) as super::MsgPayloadLen).to_be_bytes().iter());
+  buf.extend(
+    ((payload.len()) as super::MsgPayloadLen)
+      .to_be_bytes()
+      .iter(),
+  );
   buf.extend(payload);
   buf
 }
@@ -22,8 +26,49 @@ where
   let mut buf = constants::PROTOCOL_IDENTIFIER_V1.to_vec();
   buf.extend(msg.id().to_be_bytes().iter());
 
-  buf.extend(((pld_buf.len()) as super::MsgPayloadLen).to_be_bytes().iter());
+  buf.extend(
+    ((pld_buf.len()) as super::MsgPayloadLen)
+      .to_be_bytes()
+      .iter(),
+  );
   buf.extend(pld_buf);
 
   Ok(buf)
+}
+
+pub fn message_buffer_from_payload<'de, P, D>(
+  msg: super::MsgType,
+  pld: P,
+) -> Result<Vec<u8>, io::Error>
+where
+  P: payload::Payload<'de, D>,
+  D: serde::Serialize + serde::Deserialize<'de>,
+{
+  let pld_buf = pld.as_vec()?;
+
+  let mut buf = constants::PROTOCOL_IDENTIFIER_V1.to_vec();
+  buf.extend(msg.id().to_be_bytes().iter());
+
+  buf.extend(
+    ((pld_buf.len()) as super::MsgPayloadLen)
+      .to_be_bytes()
+      .iter(),
+  );
+  buf.extend(pld_buf);
+
+  Ok(buf)
+}
+
+pub fn message_buffer_from_payload_buf(msg: super::MsgType, pld_buf: Vec<u8>) -> Vec<u8> {
+  let mut buf = constants::PROTOCOL_IDENTIFIER_V1.to_vec();
+  buf.extend(msg.id().to_be_bytes().iter());
+
+  buf.extend(
+    ((pld_buf.len()) as super::MsgPayloadLen)
+      .to_be_bytes()
+      .iter(),
+  );
+  buf.extend(pld_buf);
+
+  buf
 }

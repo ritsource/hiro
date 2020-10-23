@@ -30,13 +30,19 @@ pub fn write_piece_to_fs(p: piece::Piece) -> Result<(), io::Error> {
 
   let nw = f.write(&p.data().map_or(vec![], |v| v))?;
 
-  println!("written {} bytes to file: {}", nw, file_path.to_str().unwrap());
+  println!(
+    "written {} bytes to file: {}",
+    nw,
+    file_path.to_str().unwrap()
+  );
 
   Ok(())
 }
 
 #[allow(dead_code)]
-pub fn handle_piece_upload_message(pld: payload::PieceUploadReq) -> Result<payload::PieceUploadRes, io::Error> {
+pub fn handle_piece_upload_message(
+  pld: payload::PieceUploadReq,
+) -> Result<payload::PieceUploadRes, io::Error> {
   write_piece_to_fs(Into::<piece::Piece>::into(pld.data()))?;
   Ok(payload::PieceUploadRes::new(true))
 }

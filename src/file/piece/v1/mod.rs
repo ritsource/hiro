@@ -8,8 +8,10 @@ use crate::file::piece::VersionID;
 use crate::id::v1 as id;
 
 pub const VERSION: VersionID = [0u8; 3];
-pub const HEADER_LEN: usize =
-  mem::size_of::<VersionID>() + mem::size_of::<[u8; 4]>() + mem::size_of::<[u8; 4]>() + mem::size_of::<PieceID>();
+pub const HEADER_LEN: usize = mem::size_of::<VersionID>()
+  + mem::size_of::<[u8; 4]>()
+  + mem::size_of::<[u8; 4]>()
+  + mem::size_of::<PieceID>();
 
 pub type Header = [u8; HEADER_LEN];
 

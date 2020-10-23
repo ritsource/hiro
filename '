@@ -55,10 +55,7 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
               let mut peer = Into::<Peer>::into(*peer);
 
               match peer
-                .write_message(
-                  message::MsgType::PieceUploadReq,
-                  payload::PieceUploadReq::new(piece.clone()),
-                )
+                .write_message(message::MsgType::PieceUploadReq, payload::PieceUploadReq::new(*piece))
                 .await
               {
                 Ok(nw) => {}
@@ -70,10 +67,7 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
           }
           Ok((None, stream)) => {
             println!("an error occurred, master responsed with invalid data");
-            println!(
-              "terminating connection with {}",
-              stream.peer_addr().unwrap()
-            );
+            println!("terminating connection with {}", stream.peer_addr().unwrap());
             return Err(io::Error::new(
               io::ErrorKind::Other,
               "master responsed with invalid data",
@@ -81,10 +75,7 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
           }
           Err((err, stream)) => {
             println!("an error occurred, {}", err);
-            println!(
-              "terminating connection with {}",
-              stream.peer_addr().unwrap()
-            );
+            println!("terminating connection with {}", stream.peer_addr().unwrap());
             return Err(err);
           }
         }

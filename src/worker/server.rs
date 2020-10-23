@@ -12,7 +12,10 @@ pub async fn start_server(addr: net::SocketAddr) -> Result<(), io::Error> {
       Ok(stream) => {
         if let Err((err, stream)) = handler::handle_stream(stream) {
           println!("an error occurred, {}", err);
-          println!("terminating connection with {}", stream.peer_addr().unwrap());
+          println!(
+            "terminating connection with {}",
+            stream.peer_addr().unwrap()
+          );
           stream.shutdown(net::Shutdown::Both).unwrap();
         }
       }

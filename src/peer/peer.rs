@@ -2,7 +2,11 @@ use serde::{Deserialize, Serialize};
 use std::io;
 use std::net;
 
+use std::io::Write;
+
 use crate::id::v1 as id;
+use crate::interface::message;
+use crate::interface::payload;
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub enum PeerType {
@@ -96,11 +100,11 @@ impl Peer {
     self.id
   }
 
-  pub fn connection(self) -> Option<net::TcpStream> {
+  fn connection(self) -> Option<net::TcpStream> {
     self.stream
   }
 
-  pub fn is_connected(self) -> bool {
+  pub fn is_connected(&self) -> bool {
     if let None = self.stream {
       false
     } else {
@@ -108,7 +112,7 @@ impl Peer {
     }
   }
 
-  pub fn connect(mut self) -> Result<(), io::Error> {
+  fn connect(&mut self) -> Result<(), io::Error> {
     match net::TcpStream::connect(&self.addr) {
       Ok(stream) => {
         self.stream = Some(stream);
@@ -117,13 +121,33 @@ impl Peer {
       Err(err) => Err(err),
     }
   }
+
+  pub async fn write_message<'de, P, D>(
+    &mut self,
+    msg_type: message::MsgType,
+    pld: P,
+  ) -> Result<usize, io::Error>
+  where
+    P: payload::Payload<'de, D>,
+    D: serde::Serialize + serde::Deserialize<'de>,
+  {
+    if !self.is_connected() {
+      self.connect()?;
+    }
+    let msg_buf = message::message_buffer_from_payload(msg_type, pld)?;
+
+    self.write(&msg_buf)
+  }
 }
 
 impl io::Read for Peer {
   fn read(&mut self, buf: &mut [u8]) -> Result<usize, io::Error> {
     match &mut self.stream {
       Some(s) => s.read(buf),
-      None => Err(io::Error::new(io::ErrorKind::Other, "connection does not exist")),
+      None => Err(io::Error::new(
+        io::ErrorKind::Other,
+        "connection does not exist",
+      )),
     }
   }
 }
@@ -132,14 +156,20 @@ impl io::Write for Peer {
   fn write(&mut self, buf: &[u8]) -> Result<usize, io::Error> {
     match &mut self.stream {
       Some(s) => s.write(buf),
-      None => Err(io::Error::new(io::ErrorKind::Other, "connection does not exist")),
+      None => Err(io::Error::new(
+        io::ErrorKind::Other,
+        "connection does not exist",
+      )),
     }
   }
 
   fn flush(&mut self) -> Result<(), io::Error> {
     match &mut self.stream {
       Some(s) => s.flush(),
-      None => Err(io::Error::new(io::ErrorKind::Other, "connection does not exist")),
+      None => Err(io::Error::new(
+        io::ErrorKind::Other,
+        "connection does not exist",
+      )),
     }
   }
 }

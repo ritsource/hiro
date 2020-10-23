@@ -49,7 +49,10 @@ pub async fn add(id: &file::FileID, path: &str) -> Result<(), io::Error> {
     let _ = files.insert(*id, FileInfo::new(path));
     Ok(())
   } else {
-    Err(io::Error::new(io::ErrorKind::Other, "File with id already exists"))
+    Err(io::Error::new(
+      io::ErrorKind::Other,
+      "File with id already exists",
+    ))
   }
 }
 
@@ -67,7 +70,10 @@ pub async fn update(id: &file::FileID, path: Option<String>) -> Result<(), io::E
       let _ = files.insert(*id, info);
       Ok(())
     }
-    None => Err(io::Error::new(io::ErrorKind::Other, "File with id does not exist")),
+    None => Err(io::Error::new(
+      io::ErrorKind::Other,
+      "File with id does not exist",
+    )),
   }
 }
 

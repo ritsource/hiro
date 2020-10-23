@@ -50,7 +50,10 @@ pub async fn add(id: &peer::PeerID, pr: peer::Peer) -> Result<(), io::Error> {
     let _ = peers.insert(*id, pr);
     Ok(())
   } else {
-    Err(io::Error::new(io::ErrorKind::Other, "Peer with id already exists"))
+    Err(io::Error::new(
+      io::ErrorKind::Other,
+      "Peer with id already exists",
+    ))
   }
 }
 
@@ -63,7 +66,10 @@ pub async fn update(id: &peer::PeerID, pr: peer::Peer) -> Result<(), io::Error> 
       let _ = peers.insert(*id, pr);
       Ok(())
     }
-    None => Err(io::Error::new(io::ErrorKind::Other, "Peer with id does not exist")),
+    None => Err(io::Error::new(
+      io::ErrorKind::Other,
+      "Peer with id does not exist",
+    )),
   }
 }
 

@@ -11,7 +11,9 @@ use crate::interface::payload::Payload;
 use super::controllers;
 
 #[allow(dead_code)]
-pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::Error, net::TcpStream)> {
+pub fn handle_stream(
+  mut stream: net::TcpStream,
+) -> Result<net::TcpStream, (io::Error, net::TcpStream)> {
   use constants::PROTOCOL_IDENTIFIER_V1;
 
   let mut buf = [0u8; PROTOCOL_IDENTIFIER_V1.len()];
@@ -45,8 +47,13 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
               println!("{:?}", pld.clone().data());
 
               let resp_data = match controllers::handle_piece_upload_message(pld) {
-                Ok(pld) => message::gen_buf_for_rpc(message::MsgType::PieceUploadRes, pld.as_vec().unwrap()),
-                Err(err) => message::gen_buf_for_rpc(message::MsgType::Error, format!("{}", err).as_bytes().to_vec()),
+                Ok(pld) => {
+                  message::gen_buf_for_rpc(message::MsgType::PieceUploadRes, pld.as_vec().unwrap())
+                }
+                Err(err) => message::gen_buf_for_rpc(
+                  message::MsgType::Error,
+                  format!("{}", err).as_bytes().to_vec(),
+                ),
               };
 
               match stream.write(&resp_data) {
@@ -62,7 +69,10 @@ pub fn handle_stream(mut stream: net::TcpStream) -> Result<net::TcpStream, (io::
         }
         message::MsgType::Error => {
           println!("message recieved: error");
-          Err((io::Error::new(io::ErrorKind::Other, "error message recieved"), stream))
+          Err((
+            io::Error::new(io::ErrorKind::Other, "error message recieved"),
+            stream,
+          ))
         }
         _ => {
           println!("message recieved: unknown");

@@ -10,7 +10,9 @@ use crate::interface::data;
 
 // NOTE: create serialize and deserialize traits
 // and, make payload to be it's super trait
-pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::Sized + Clone + fmt::Debug {
+pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>:
+  marker::Sized + Clone + fmt::Debug
+{
   fn new(data: D) -> Self;
 
   fn data(self) -> D;
@@ -25,7 +27,10 @@ pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::S
   {
     if offset > constants::MAX_MEMORIZABLE_PAYLOAD_SIZE {
       return Err((
-        io::Error::new(io::ErrorKind::Other, "payload size exceeded maximum memorizable limit"),
+        io::Error::new(
+          io::ErrorKind::Other,
+          "payload size exceeded maximum memorizable limit",
+        ),
         reader,
       ));
     }
@@ -47,7 +52,10 @@ pub trait Payload<'de, D: serde::Serialize + serde::Deserialize<'de>>: marker::S
         } else if nr == 0 {
           // NOTE: need a better way of handling this,
           // maybe timeout or something
-          return Err((io::Error::new(io::ErrorKind::Other, "unable to read any data"), reader));
+          return Err((
+            io::Error::new(io::ErrorKind::Other, "unable to read any data"),
+            reader,
+          ));
         } else {
           true
         }

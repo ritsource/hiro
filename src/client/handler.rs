@@ -41,20 +41,25 @@ where
           println!("message recieved: a ping");
           Ok((None, stream))
         }
-        message::MsgType::FileRes => match payload::FileRes::from_reader(stream, msg.payload_len() as usize) {
-          Ok((pld, stream)) => {
-            let pld_any = &pld as &dyn any::Any;
-            match pld_any.downcast_ref::<D>() {
-              Some(pld) => Ok((Some(pld.clone()), stream)),
-              None => Ok((None, stream)),
+        message::MsgType::FileRes => {
+          match payload::FileRes::from_reader(stream, msg.payload_len() as usize) {
+            Ok((pld, stream)) => {
+              let pld_any = &pld as &dyn any::Any;
+              match pld_any.downcast_ref::<D>() {
+                Some(pld) => Ok((Some(pld.clone()), stream)),
+                None => Ok((None, stream)),
+              }
             }
+            Err((err, stream)) => Err((err, stream)),
           }
-          Err((err, stream)) => Err((err, stream)),
-        },
+        }
         message::MsgType::PieceUploadRes => {
           match payload::PieceUploadRes::from_reader(stream, msg.payload_len() as usize) {
             Ok((payload, stream)) => {
-              println!("file successfully uploaded, response recieved {}", payload.data());
+              println!(
+                "file successfully uploaded, response recieved {}",
+                payload.data()
+              );
               Ok((None, stream))
             }
             Err((err, stream)) => Err((err, stream)),
@@ -62,7 +67,10 @@ where
         }
         message::MsgType::Error => {
           println!("message recieved: error");
-          Err((io::Error::new(io::ErrorKind::Other, "error message recieved"), stream))
+          Err((
+            io::Error::new(io::ErrorKind::Other, "error message recieved"),
+            stream,
+          ))
         }
         _ => {
           println!("message recieved: unknown");
