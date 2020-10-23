@@ -11,7 +11,7 @@ services:
       - ./data:/usr/src/hiro/data
     environment:
       - PORT=8080
-      - DATA_OUT_DIR=/usr/src/hiro/data
+        # - DATA_OUT_DIR=/usr/src/hiro/data
   worker_1:
     build:
       context: .
@@ -23,7 +23,7 @@ services:
       - ./data:/usr/src/hiro/data
     environment:
       - PORT=5002
-      - DATA_OUT_DIR=/usr/src/hiro/data
+        # - DATA_OUT_DIR=/usr/src/hiro/data
   worker_2:
     build:
       context: .
@@ -33,6 +33,6 @@ services:
       - "5003:5003"
     volumes:
       - ./data:/usr/src/hiro/data
-      - DATA_OUT_DIR=/usr/src/hiro/data
+        # - DATA_OUT_DIR=/usr/src/hiro/data
     environment:
       - PORT=5003

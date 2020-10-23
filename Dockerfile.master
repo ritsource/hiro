@@ -1,0 +1,5 @@
+FROM base as master
+RUN chmod +x ./target/debug/hiro
+CMD [ "./target/debug/hiro", "--master" ]
+# CMD [ "./target/debug/hiro", "--master", "-p", $PORT ]
+

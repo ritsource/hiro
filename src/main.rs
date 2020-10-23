@@ -9,18 +9,32 @@ use hiro::constants;
 use hiro::master;
 use hiro::worker;
 
-fn parse_socket_addr(args: Vec<String>) -> Option<net::SocketAddr> {
+fn parse_socket_addr_from_args(args: Vec<String>) -> Option<net::SocketAddr> {
+  println!("{:?}", args);
+
   if args.len() > 3 && (args[2] == "-p" || args[2] == "--port") && args.len() >= 4 {
-    let port = match args[3].parse::<u16>() {
-      Ok(p) => p,
-      Err(_) => return None,
-    };
-    Some(net::SocketAddr::new(
-      net::IpAddr::V4(net::Ipv4Addr::new(127, 0, 0, 1)),
-      port,
-    ))
+    match args[3].parse::<u16>() {
+      Ok(port) => Some(net::SocketAddr::new(
+        net::IpAddr::V4(net::Ipv4Addr::new(127, 0, 0, 1)),
+        port,
+      )),
+      Err(_) => None,
+    }
   } else {
     None
+  }
+}
+
+fn parse_socket_addr_from_env() -> Option<net::SocketAddr> {
+  match env::var("PORT") {
+    Ok(port_str) => match port_str.parse::<u16>() {
+      Ok(port) => Some(net::SocketAddr::new(
+        net::IpAddr::V4(net::Ipv4Addr::new(127, 0, 0, 1)),
+        port,
+      )),
+      Err(_) => None,
+    },
+    Err(_) => None,
   }
 }
 
@@ -29,12 +43,14 @@ async fn main() {
   let args: Vec<String> = env::args().collect();
 
   if args.len() > 1 && args[1] == "--master" {
-    let master_socket_addr = parse_socket_addr(args).unwrap_or(*constants::MASTER_IP_ADDR);
+    let master_socket_addr = parse_socket_addr_from_args(args)
+      .unwrap_or(parse_socket_addr_from_env().unwrap_or(*constants::MASTER_IP_ADDR));
     println!("master listening on address: {}", &master_socket_addr);
 
     master::start_server(master_socket_addr).await.unwrap();
   } else if args.len() > 1 && args[1] == "--worker" {
-    let worker_socket_addr = parse_socket_addr(args).unwrap_or(*constants::WORKER_SERVER_ADDR);
+    let worker_socket_addr = parse_socket_addr_from_args(args)
+      .unwrap_or(parse_socket_addr_from_env().unwrap_or(*constants::WORKER_SERVER_ADDR));
     println!("worker listening on address: {}", &worker_socket_addr);
 
     worker::start_server(worker_socket_addr).await.unwrap();
