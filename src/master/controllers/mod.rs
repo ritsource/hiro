@@ -35,6 +35,11 @@ pub fn calculate_pieces(payload: payload::FileReq) -> payload::FileRes {
       MAX_COUNT_OF_WORKER_ADDRS_FOR_A_PIECE
     };
 
+  println!(
+    "max_count_of_worker_addrs_for_a_piece: {:?}",
+    max_count_of_worker_addrs_for_a_piece
+  );
+
   let res = (Into::<file::File>::into(payload.data()))
     .pieces()
     .into_iter()
@@ -42,12 +47,14 @@ pub fn calculate_pieces(payload: payload::FileReq) -> payload::FileRes {
       // let idx_arr = (0..max_count_of_worker_addrs_for_a_piece- 1).collect::<Vec<usize>>();
       (
         data::Piece::from(piece),
-        (0..max_count_of_worker_addrs_for_a_piece - 1)
+        (0..max_count_of_worker_addrs_for_a_piece)
           .map(|i| workers[i])
           .collect(),
       )
     })
     .collect();
+
+  println!("{:?}", res);
 
   payload::FileRes::new(res)
 }
