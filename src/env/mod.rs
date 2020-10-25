@@ -5,11 +5,14 @@ use std::net;
 
 // NOTE: cache the Vec<Opiton<net::SocketAddr>>
 // NOTE: find a way to return Vec<net::SocketAddr>
-pub fn get_worker_socket_addrs() -> Vec<Option<net::SocketAddr>> {
+pub fn get_worker_socket_addrs() -> Vec<net::SocketAddr> {
   let args = env::args().collect();
 
   let worker_addrs = helpers::parse_worker_socket_addrs_from_args(args)
-    .unwrap_or(helpers::parse_worker_socket_addrs_from_env().unwrap_or(vec![]));
+    .unwrap_or(helpers::parse_worker_socket_addrs_from_env().unwrap_or(vec![]))
+    .iter()
+    .filter_map(|opt| *opt)
+    .collect();
 
   println!("worker socket addresses: {:?}", worker_addrs);
   worker_addrs

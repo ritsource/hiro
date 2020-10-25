@@ -76,3 +76,27 @@ CRUD (create, read, update, delete) files
 # Notes
 
 Check out [https://en.wikipedia.org/wiki/Server_Message_Block](https://en.wikipedia.org/wiki/Server_Message_Block)
+
+
+
+
+
+
+# Note - File upload
+
+1. Client sends file metadata to master
+2. Master assigns 1 major and multiple minor workers for a given file and creates a map
+   something like, `Vec<(Piece, Vec<Peer>)>`, where in the `Vec<Peer>` only the first peer
+   is "major"
+2. Master responds with the data
+
+
+
+
+
+
+
+
+
+
+

@@ -1,3 +1,4 @@
+use crate::env;
 use crate::file::{self, piece::v1 as piece};
 use crate::interface::data;
 use crate::interface::payload;
@@ -6,22 +7,11 @@ use crate::peer;
 
 #[allow(dead_code)]
 fn get_workers() -> Vec<peer::Peer> {
-  // vec![
-  //   peer::Peer::new_worker("192.168.0.246:8080").unwrap(),
-  //   peer::Peer::new_worker("192.168.0.246:8080").unwrap(),
-  // ]
-  vec![peer::Peer::new_worker("127.0.0.1:8090").unwrap()]
+  env::get_worker_socket_addrs()
+    .iter()
+    .map(|addr| peer::Peer::new(*addr, peer::PeerType::Worker))
+    .collect()
 }
-
-// fn get_workers() -> Vec<data::Peer> {
-//   vec![
-//     peer::Peer::new_worker("192.168.0.246:8080").unwrap(),
-//     peer::Peer::new_worker("192.168.0.246:8080").unwrap(),
-//   ]
-//   .into_iter()
-//   .map(|pp| data::Peer::from(pp))
-//   .collect()
-// }
 
 #[allow(dead_code)]
 fn assign_pieces_to_peers(ps: Vec<piece::Piece>) -> Vec<(piece::Piece, Vec<peer::Peer>)> {
@@ -35,18 +25,32 @@ pub fn calculate_pieces(payload: payload::FileReq) -> payload::FileRes {
     .into_iter()
     .map(|w| data::Peer::from(w))
     .collect();
-  let mut y = 0;
+  let mut n = 0;
+  const MAX_COUNT_OF_WORKER_ADDRS_FOR_A_PIECE: usize = 3;
 
-  payload::FileRes::new(
-    (Into::<file::File>::into(payload.data()))
-      .pieces()
-      .into_iter()
-      .map(|piece| {
-        if y > workers.len() - 1 {
-          y = 0
-        }
-        (data::Piece::from(piece), data::Peer::from(workers[y]))
-      })
-      .collect(),
-  )
+  let res = (Into::<file::File>::into(payload.data()))
+    .pieces()
+    .into_iter()
+    .map(|piece| {
+      // NOTE: make it more understandable, try
+      // if it's possible with iter
+      n = get_next_index(n, workers.len());
+      let n1 = get_next_index(n + 1, workers.len());
+      let n2 = get_next_index(n + 2, workers.len());
+      (
+        data::Piece::from(piece),
+        vec![workers[n], workers[n1], workers[n2]],
+      )
+    })
+    .collect();
+
+  payload::FileRes::new(res)
+}
+
+fn get_next_index(idx: usize, max: usize) -> usize {
+  if idx < 0 || idx + 1 > max {
+    0
+  } else {
+    idx + 1
+  }
 }

@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::cell;
 use std::io;
 use std::net;
 
@@ -28,6 +29,15 @@ impl Default for PeerState {
   fn default() -> Self {
     Self::Free
   }
+}
+
+#[derive(Debug)]
+pub struct PeerNew<'r> {
+  pub id: PeerID,
+  pub peer_type: PeerType,
+  pub addr: net::SocketAddr,
+  pub stream: cell::RefMut<'r, Option<net::TcpStream>>,
+  pub state: PeerState,
 }
 
 #[derive(Debug)]
