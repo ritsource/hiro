@@ -1,4 +1,4 @@
-use std::collections;
+use std::collections::{self, hash_map};
 use std::io;
 use std::net;
 use std::path;
@@ -46,12 +46,15 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
             // master responded with pieces and peer mappings
             use collections::HashMap;
             use peer::{Peer, PeerID};
-            use piece::Piece;
+            use piece::{Piece};
 
             // const MAX_ALLOWED_PEER_FAILURES: i32 = 3;
 
-            // let peer_map: sync::Arc<tokio_sync::Mutex<HashMap<PeerID, (Peer, bool)>>> =
-            //   Default::default();
+            let mut peer_map: HashMap<PeerID, sync::Arc<tokio_sync::Mutex<Peer>>> =
+              Default::default();
+
+            let mut piece_map: HashMap<PeerID, sync::Arc<tokio_sync::Mutex<Peer>>> =
+              Default::default();
             // let peer_by_pieces_map: sync::Arc<tokio_sync::Mutex<HashMap<Peer, Vec<Piece>>>> =
             //   Default::default();
             // let piece_state_map: sync::Arc<tokio_sync::Mutex<HashMap<Piece, (bool, Piece)>>> =
@@ -60,32 +63,84 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
             //   tokio_sync::Mutex<HashMap<PeerID, (bool, Piece)>>,
             // > = Default::default();
 
+            // sync::Arc<tokio_sync::Mutex
+
+            for (piece, peers) in payload.clone().data().iter() {
+              for peer in peers {
+                if let hash_map::Entry::Vacant(v) = peer_map.entry(peer.id) {
+                  v.insert(sync::Arc::new(tokio_sync::Mutex::new(Into::<Peer>::into(
+                    *peer,
+                  ))));
+                }
+              }
+            }
+
             for (piece, peers) in payload.data().iter() {
+              // TODO: async starts here
               // let mut peers = Into::<Peer>::into(*peer);
               let peers: Vec<Peer> = peers.iter().map(|p| Into::<Peer>::into(*p)).collect();
-              println!(
-                "{:#?} -> {:#?}",
-                piece.id,
-                peers.iter().map(|x| x.id).collect::<Vec<PeerID>>()
-              );
+              let piece: data::PieceWithData = piece.clone().into();
 
               // NOTE: this happens asynchronously
-              for mut peer in peers {
-                match peer
-                  .write_message(
+              'lol: for mut peer in peers {
+                if !peer.is_connected() {
+                  peer.connect()?;
+                }
+
+                if let Some(mut peer_stream) = peer.connection() {
+                  let msg_buf = message::message_buffer_from_payload(
                     message::MsgType::PieceUploadReq,
                     payload::PieceUploadReq::new(piece.clone()),
-                  )
-                  .await
-                {
-                  Ok(nw) => {
-                    println!("successfully written {} bytes", nw);
-                    println!("waiting for response ...");
+                  )?;
+
+                  match peer_stream.write(&msg_buf) {
+                    Ok(nw) => {
+                      println!("successfully written {} bytes", nw);
+                      println!("waiting for response ...");
+
+                      match handler::handle_stream::<payload::PieceUploadRes>(peer_stream).await {
+                        Ok((Some(resp), peer_stream)) => {
+                          break 'lol;
+                        }
+                        Ok((None, peer_stream)) => {
+                          break 'lol;
+                        }
+                        // NOTE: probably a worker failure
+                        Err(err) => {}
+                      }
+                    }
+                    Err(err) => {
+                      // TODO: increment peer failure count
+                      println!("an error occurred, {}", err);
+                    }
                   }
-                  Err(err) => {
-                    println!("an error occurred, {}", err);
-                  }
+
+                  // NOTE: handle Err that represents worker failure
+                  // Err(X::ErrorKind::WorkerFailure) => {},
                 }
+
+                // match peer
+                //   .write_message(
+                //     message::MsgType::PieceUploadReq,
+                //     payload::PieceUploadReq::new(piece.clone()),
+                //   )
+                //   .await
+                // {
+                //   Ok(nw) => {
+                //     match handler::handle_stream::<payload::PieceUploadRes>(peer_stream).await {
+                //       Ok((Some(resp), peer_stream)) => {}
+                //       Ok((None, peer_stream)) => {}
+                //       // NOTE: probably a worker failure
+                //       Err(err) => {}
+                //     }
+
+                //     break 'lol;
+                //   }
+                //   Err(err) => {
+                //     // TODO: increment peer failure count
+                //     println!("an error occurred, {}", err);
+                //   }
+                // }
               }
             }
 

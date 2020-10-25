@@ -16,23 +16,7 @@ pub struct Piece {
   pub file_id: file::FileID,
   pub start: u32,
   pub length: u32,
-  data: Option<Vec<u8>>,
-}
-
-#[allow(dead_code)]
-impl Piece {
-  pub fn with_data(mut self, data: Option<Vec<u8>>) -> Self {
-    self.data = data;
-    self
-  }
-
-  pub fn data(self) -> Option<Vec<u8>> {
-    self.data
-  }
-
-  pub fn has_data(self) -> bool {
-    self.data != None
-  }
+  // data: Option<Vec<u8>>,
 }
 
 impl From<piece::Piece> for Piece {
@@ -42,7 +26,6 @@ impl From<piece::Piece> for Piece {
       file_id: p.file_id(),
       start: p.start(),
       length: p.length(),
-      data: p.data(),
     }
   }
 }
@@ -55,6 +38,5 @@ impl Into<piece::Piece> for Piece {
     piece::Piece::new_with_id(self.id, self.file_id, self.start, self.length)
       .with_start(self.start)
       .with_length(self.length)
-      .with_data(self.data())
   }
 }

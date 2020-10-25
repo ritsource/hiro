@@ -125,19 +125,19 @@ impl Payload<'_, Vec<(data::Piece, Vec<data::Peer>)>> for FileRes {
 }
 
 #[derive(Clone, Debug)]
-pub struct PieceUploadReq(data::Piece);
+pub struct PieceUploadReq(data::PieceWithData);
 
-impl Payload<'_, data::Piece> for PieceUploadReq {
-  fn new(data: data::Piece) -> Self {
+impl Payload<'_, data::PieceWithData> for PieceUploadReq {
+  fn new(data: data::PieceWithData) -> Self {
     Self(data)
   }
 
-  fn data(self) -> data::Piece {
+  fn data(self) -> data::PieceWithData {
     self.0
   }
 
   fn from_vec(payload: Vec<u8>) -> Result<Self, io::Error> {
-    match serde_json::from_slice::<data::Piece>(&payload) {
+    match serde_json::from_slice::<data::PieceWithData>(&payload) {
       Ok(data) => Ok(Self::new(data)),
       Err(err) => Err(io::Error::new(io::ErrorKind::Other, err)),
     }

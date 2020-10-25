@@ -40,6 +40,28 @@ pub struct PeerNew<'r> {
   pub state: PeerState,
 }
 
+// impl From<peer::PeerNew> for Peer {
+//   fn from(p: peer::PeerNew) -> Self {
+//     Self {
+//       id: p.id,
+//       peer_type: p.peer_type,
+//       addr: p.addr,
+//     }
+//   }
+// }
+//
+// impl Into<peer::PeerNew> for Peer {
+//   fn into(self) -> peer::PeerNew {
+//     peer::Peer {
+//       id: self.id,
+//       peer_type: self.peer_type,
+//       addr: self.addr,
+//       stream: Default::default(),
+//       state: Default::default(),
+//     }
+//   }
+// }
+
 #[derive(Debug)]
 pub struct Peer {
   pub id: PeerID,
@@ -107,6 +129,10 @@ impl Peer {
   }
 
   pub fn peer_id(self) -> PeerID {
+    self.id
+  }
+
+  pub fn id(self) -> PeerID {
     self.id
   }
 
