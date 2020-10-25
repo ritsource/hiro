@@ -63,6 +63,11 @@ pub async fn upload_file(path: &path::Path) -> Result<(), io::Error> {
             for (piece, peers) in payload.data().iter() {
               // let mut peers = Into::<Peer>::into(*peer);
               let peers: Vec<Peer> = peers.iter().map(|p| Into::<Peer>::into(*p)).collect();
+              println!(
+                "{:#?} -> {:#?}",
+                piece.id,
+                peers.iter().map(|x| x.id).collect::<Vec<PeerID>>()
+              );
 
               // NOTE: this happens asynchronously
               for mut peer in peers {
