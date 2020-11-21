@@ -2,6 +2,22 @@
 
 Hiro is a scalable, fault-tolerant, network-attached distributed file system. It's for personal use, so the focus is reliability rather than speed, but speed is always welcome (we'll see).
 
+# Quick upload
+```
+docker-compose up --build # not working for some reason now
+```
+
+```
+cargo run -- --master --port 8080 --workers 127.0.0.1:5050,127.0.0.1:5051
+```
+```
+cargo run -- --worker --port 5051 --master 127.0.0.1:8080
+cargo run -- --worker --port 5050 --master 127.0.0.1:8080
+```
+```
+cargo run -- --client ./data/ipsum.text -m 127.0.0.1:8080
+```
+
 # state distribution
 
 1. Master - [ Files, Pieces, and Piece/Peer(worker) mapping ]
