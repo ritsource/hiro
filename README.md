@@ -1,4 +1,6 @@
 # Quick upload
+
+**Start Server**
 ```
 docker-compose up --build
 ```
@@ -10,6 +12,8 @@ cargo run -- --master --port 8080 --workers 127.0.0.1:5050,127.0.0.1:5051
 cargo run -- --worker --port 5051 --master 127.0.0.1:8080
 cargo run -- --worker --port 5050 --master 127.0.0.1:8080
 ```
+
+**Start Client / Upload**
 ```
 cargo run -- --client ./data/ipsum.text -m 127.0.0.1:8080
 ```
