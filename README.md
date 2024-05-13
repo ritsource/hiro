@@ -1,8 +1,8 @@
 # Quick upload
 ```
-docker-compose up --build # not working for some reason now
+docker-compose up --build
 ```
-
+Or,
 ```
 cargo run -- --master --port 8080 --workers 127.0.0.1:5050,127.0.0.1:5051
 ```
