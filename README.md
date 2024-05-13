@@ -17,6 +17,7 @@ cargo run -- --worker --port 5050 --master 127.0.0.1:8080
 ```
 cargo run -- --client ./data/ipsum.text -m 127.0.0.1:8080
 ```
+<!--
 
 # state distribution
 
@@ -112,7 +113,4 @@ Check out [https://en.wikipedia.org/wiki/Server_Message_Block](https://en.wikipe
 
 
 
-
-
-
-
+-->
