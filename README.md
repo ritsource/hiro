@@ -1,7 +1,3 @@
-# Hiro
-
-Hiro is a scalable, fault-tolerant, network-attached distributed file system. It's for personal use, so the focus is reliability rather than speed, but speed is always welcome (we'll see).
-
 # Quick upload
 ```
 docker-compose up --build # not working for some reason now
