@@ -1,4 +1,5 @@
 # Hiro
+![assembly_4-removebg-preview](https://github.com/ritsource/hiro/assets/35898601/c5331c9b-fd4d-4693-a709-07cc96432d42)
 
 A network attached distriburted file system that can run on a **Raspberry PI** (at home). It's a fast, horizontally-scalable, and fault-tolerant storage solution.
 
