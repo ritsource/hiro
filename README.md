@@ -52,4 +52,3 @@ For optimal scalability and reliability, Hiro is designed to run on a Kubernetes
 
 Interested in building your own Raspberry Pi Kubernetes cluster? Check out this comprehensive guide:  
 https://alexsniffin.medium.com/a-guide-to-building-a-kubernetes-cluster-with-raspberry-pis-23fa4938d420
-
