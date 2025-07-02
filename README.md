@@ -50,5 +50,5 @@ Hiro can be deployed as a Network Attached File System (NAS), providing seamless
 
 For optimal scalability and reliability, Hiro is designed to run on a Kubernetes cluster. Our reference deployment uses a **6-node Raspberry Pi cluster**, making it both cost-effective and energy-efficient for home labs or edge computing.
 
-Interested in building your own Raspberry Pi Kubernetes cluster? Check out this comprehensive guide:  
-https://alexsniffin.medium.com/a-guide-to-building-a-kubernetes-cluster-with-raspberry-pis-23fa4938d420
+Interested in building your own Raspberry Pi Kubernetes cluster? Check out this comprehensive guide: [https://alexsniffin.medium.com/a-guide-to-building-a-kubernetes-cluster-with-raspberry-pis-23fa4938d420](https://alexsniffin.medium.com/a-guide-to-building-a-kubernetes-cluster-with-raspberry-pis-23fa4938d420).
+
