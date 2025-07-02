@@ -1,118 +1,49 @@
 # Hiro
 
-Hiro is a scalable, fault-tolerant, network-attached distributed file system. It's for personal use, so the focus is reliability rather than speed, but speed is always welcome (we'll see).
+Hiro is a system that lets you store large files by automatically splitting them into smaller pieces and spreading those pieces across several computers on your network. When you upload a file, Hiro keeps track of where every piece is stored, so you can easily get your file back later, even if some computers go offline. This makes it easy to build your own reliable, private cloud storage at home or in a small office, using regular hardware like Raspberry Pis or old PCs.
 
-# Quick upload
+> **Note:**  
+A lot of inspiration for Hiro's architecture and design is taken from the [Google File System (GFS)](https://research.google/pubs/pub51/). GFS is a scalable distributed file system developed by Google to handle large data-intensive applications. Hiro adapts many of the core ideas from GFS. While Hiro is designed for home labs and small-scale deployments, its underlying principles are rooted in the proven concepts of GFS, making it robust and reliable even in environments with limited resources. By leveraging techniques such as file chunking, distributed metadata management, and redundancy, Hiro ensures data integrity and availability, allowing users to build their own resilient storage solutions for various usecases.
+
+## Getting started
+
+Clone the repository ..
+```shell
+git clone https://github.com/ritsource/hiro.git
 ```
-docker-compose up --build # not working for some reason now
+```shell
+cd hiro
 ```
 
+### Starting up the servers
+
+To start all the servers and workers in local [docker](https://www.docker.com/), run ..
+```shell
+docker-compose up --build
 ```
+**Or,** we can also run the master and worker server using [Cargo (Rust)](https://doc.rust-lang.org/stable/cargo/), with the following commands ..
+```shell
 cargo run -- --master --port 8080 --workers 127.0.0.1:5050,127.0.0.1:5051
 ```
-```
-cargo run -- --worker --port 5051 --master 127.0.0.1:8080
+```shell
 cargo run -- --worker --port 5050 --master 127.0.0.1:8080
+cargo run -- --worker --port 5051 --master 127.0.0.1:8080
+cargo run -- --worker --port 5052 --master 127.0.0.1:8080
 ```
+NOTE: worker needs a master address (127.0.0.1:8080), which you can pass using "--master" flag with address
+
+**Upload a file using the client-cli**
+```shell
+cargo run -- --client ./data/demo.mp4 -m 127.0.0.1:8080
 ```
-cargo run -- --client ./data/ipsum.text -m 127.0.0.1:8080
-```
 
-# state distribution
+### Deployment
+![assembly_4-removebg-preview](https://github.com/ritsource/hiro/assets/35898601/c5331c9b-fd4d-4693-a709-07cc96432d42)
 
-1. Master - [ Files, Pieces, and Piece/Peer(worker) mapping ]
-2. Worker - [ Pirce (indexed by fileID or pirceID) ]
-3. Client - [ ... none! ]
+Hiro can be deployed as a Network Attached File System (NAS), providing seamless storage and retrieval capabilities over your network. It comes with a powerful CLI client for easy interaction and management.
 
-# tasks
+For optimal scalability and reliability, Hiro is designed to run on a Kubernetes cluster. Our reference deployment uses a 6-node Raspberry Pi cluster, making it both cost-effective and energy-efficient for home labs or edge computing.
 
-A rough outline for what happens while writing files
-
-1. [ Client ] sending a new file metadata to master
-2. [ Master ] calculating the pirces to construct from for the file
-3. [ Master ] assigning each pirces to one/multiple workers, and saving it to a table
-4. [ Master ] sending information about which piece is going to be stored in which worker
-5. [ Client ] writing pirces of the original file to workers
-6. [ Worker ] writing those pieces to SSD/HHDs and sending confirmation messages to master and client
-
-For reading files
-
-1. [ Client ] requesting chunk and worker location from master for a given file
-2. [ Master ] sending the requested data to client
-3. [ Client ] reading the pieces from one/multiple workers
-
-# data (interfaces) that needs to be transfered over RPC
-
-1. [ File ]
-2. [ Piece/Peer Maps ] peer (worker ip addr and port stuff)
-3. [ Pieces ] from master to worker, so that worker can expect files beforehand (not necessary though)
-4. [ Pieces + Data ] pieces with the actual piece data
-5. ...
-
-# messages
-
-> [ Client ] sending a new file metadata to master
-
-From `Client` to `Master`   
-Request -> `File`   
-Response -> `HashMap<Chunk, Vec<<Peer>>`   
-
-> [ Master ] calculating the pirces to construct from for the file
-> [ Master ] assigning each pirces to one/multiple workers, and saving it to a table
-> [ Master ] sending information about which piece is going to be stored in which worker
-> [ Client ] writing pirces of the original file to workers
-> [ Worker ] writing those pieces to SSD/HHDs and sending confirmation messages to master and client
-
-... many :p
-
-
-# idea
-
-5. [ Client ] writing pirces of the original file to workers - the client sends data about other workers that the piece
-   needs to be copied to.
-
-
-# handling configurations
-
-## what are we gonan have
-
-### 1 client
-CRUD (create, read, update, delete) files
-
-### 1 master
-
-
-### 1+ workers
-
-
-# Tasks (and TaskQueue)
-
-
-
-# Notes
-
-Check out [https://en.wikipedia.org/wiki/Server_Message_Block](https://en.wikipedia.org/wiki/Server_Message_Block)
-
-
-
-
-
-
-# Note - File upload
-
-1. Client sends file metadata to master
-2. Master assigns 1 major and multiple minor workers for a given file and creates a map
-   something like, `Vec<(Piece, Vec<Peer>)>`, where in the `Vec<Peer>` only the first peer
-   is "major"
-2. Master responds with the data
-
-
-
-
-
-
-
-
-
-
+Interested in building your own Raspberry Pi Kubernetes cluster? Check out this comprehensive guide:  
+https://alexsniffin.medium.com/a-guide-to-building-a-kubernetes-cluster-with-raspberry-pis-23fa4938d420
 
